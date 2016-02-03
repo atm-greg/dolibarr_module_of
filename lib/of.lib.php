@@ -1,40 +1,71 @@
 <?php
+/* <one line to give the program's name and a brief idea of what it does.>
+ * Copyright (C) 2015 ATM Consulting <support@atm-consulting.fr>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
-	function assetPrepareHead(&$asset,$type='type-asset') {
-		global $user, $conf;
+/**
+ *	\file		lib/of.lib.php
+ *	\ingroup	of
+ *	\brief		This file is an example module library
+ *				Put some comments here
+ */
 
-		switch ($type) {
-			case 'type-asset':
-				return array(
-					array(DOL_URL_ROOT.'/custom/asset/typeAsset.php?id='.$asset->getId(), 'Fiche','fiche')
-					,array(DOL_URL_ROOT.'/custom/asset/typeAssetField.php?id='.$asset->getId(), 'Champs','field')
-				);
-				break;
-			case 'asset':
-				return array(
-						array(DOL_URL_ROOT.'/custom/asset/fiche.php?id='.$asset->getId(), 'Fiche','fiche'),
-						array(DOL_URL_ROOT.'/custom/asset/fiche.php?action=traceability&id='.$asset->getId(), 'Traçabilité','traceability'),
-						array(DOL_URL_ROOT.'/custom/asset/fiche.php?action=object_linked&id='.$asset->getId(), 'Objets référents','object_linked')
-					);
-				break;
-			case 'assetOF':
-				$res = array(array(DOL_URL_ROOT.'/custom/asset/fiche_of.php?id='.$asset->getId(), 'Fiche','fiche'));
-				if (!empty($conf->global->ASSET_USE_CONTROL)) $res[] = array(DOL_URL_ROOT.'/custom/asset/fiche_of.php?id='.$asset->getId().'&action=control', 'Contrôle','controle');
+function ofAdminPrepareHead()
+{
+    global $langs, $conf;
+
+    $langs->load("of@of");
+
+    $h = 0;
+    $head = array();
+
+    $head[$h][0] = dol_buildpath("/of/admin/of_setup.php", 1);
+    $head[$h][1] = $langs->trans("Parameters");
+    $head[$h][2] = 'settings';
+    $h++;
+    $head[$h][0] = dol_buildpath("/of/admin/of_about.php", 1);
+    $head[$h][1] = $langs->trans("About");
+    $head[$h][2] = 'about';
+    $h++;
+
+    // Show more tabs from modules
+    // Entries must be declared in modules descriptor with line
+    //$this->tabs = array(
+    //	'entity:+tabname:Title:@of:/of/mypage.php?id=__ID__'
+    //); // to add new tab
+    //$this->tabs = array(
+    //	'entity:-tabname:Title:@of:/of/mypage.php?id=__ID__'
+    //); // to remove a tab
+    complete_head_from_modules($conf, $langs, $object, $head, $h, 'of');
+
+    return $head;
+}
+
+function ofPrepareHead(&$of, $type='assetOF') {
+	switch($type) {
+		case 'assetOF':
+				$res = array(array(dol_buildpath('/of/fiche_of.php?id='.$of->getId(), 2), 'Fiche','fiche'));
+				if (!empty($conf->global->ASSET_USE_CONTROL)) $res[] = array('/of/fiche_of.php?id='.$of->getId().'&action=control', 'Contrôle','controle');
 				
 				return $res;
 				break;
-			case 'assetlot':
-				return array(
-						array(DOL_URL_ROOT.'/custom/asset/fiche_lot.php?id='.$asset->getId(), 'Fiche','fiche'),
-						array(DOL_URL_ROOT.'/custom/asset/fiche_lot.php?action=traceability&id='.$asset->getId(), 'Traçabilité','traceability'),
-						array(DOL_URL_ROOT.'/custom/asset/fiche_lot.php?action=object_linked&id='.$asset->getId(), 'Objets référents','object_linked')
-					);
-				break;
-		}
-		
+			break;
 	}
-	
-	
+}
+
 	function visu_checkbox_user(&$PDOdb, &$form, $group, $TUsers, $name, $status)
 	{
 		$include = array();
@@ -65,7 +96,7 @@
 	{
 		$include = array();
 		
-		$sql = 'SELECT rowid, libelle FROM '.MAIN_DB_PREFIX.'asset_workstation_task WHERE fk_workstation = '.(int) $fk_workstation;
+		$sql = 'SELECT rowid, libelle FROM '.MAIN_DB_PREFIX.'workstation_task WHERE fk_workstation = '.(int) $fk_workstation;
 		$PDOdb->Execute($sql);
 
 		//Cette input doit être présent que si je suis en brouillon, si l'OF est lancé la présence de cette input va réinitialiser à vide les associations précédentes
@@ -105,50 +136,7 @@
 		
 	}
 
-	/**
-	 *  Override
-	 * 	Return a combo box with list of units
-	 *  For the moment, units labels are defined in measuring_units_string
-	 *
-	 *  @param	string		$name                Name of HTML field
-	 *  @param  string		$measuring_style     Unit to show: weight, size, surface, volume
-	 *  @param  string		$default             Force unit
-	 * 	@param	int			$adddefault			Add empty unit called "Default"
-	 * 	@return	void
-	 */
-	function custom_load_measuring_units($name='measuring_units', $measuring_style='', $default='0', $adddefault=0)
-	{
-		global $langs,$conf,$mysoc;
-		$langs->load("other");
-
-		$return='';
-
-		$measuring_units=array();
-		if ($measuring_style == 'weight') $measuring_units=array(-6=>1,-3=>1,0=>1,3=>1,99=>1);
-		else if ($measuring_style == 'size') $measuring_units=array(-3=>1,-2=>1,-1=>1,0=>1,98=>1,99=>1);
-        else if ($measuring_style == 'surface') $measuring_units=array(-6=>1,-4=>1,-2=>1,0=>1,98=>1,99=>1);
-		else if ($measuring_style == 'volume') $measuring_units=array(-9=>1,-6=>1,-3=>1,0=>1,88=>1,89=>1,97=>1,99=>1,/* 98=>1 */);  // Liter is not used as already available with dm3
-		else if ($measuring_style == 'unit') $measuring_units=array(0=>0);
-
-		$return.= '<select class="flat" name="'.$name.'">';
-		if ($adddefault) $return.= '<option value="0">'.$langs->trans("Default").'</option>';
-
-		foreach ($measuring_units as $key => $value)
-		{
-			$return.= '<option value="'.$key.'"';
-			if ($key == $default)
-			{
-				$return.= ' selected="selected"';
-			}
-			//$return.= '>'.$value.'</option>';
-			if ($measuring_style == 'unit') $return.= '>unité(s)</option>';
-			else $return.= '>'.measuring_units_string($key,$measuring_style).'</option>';
-		}
-		$return.= '</select>';
-
-		return $return;
-	}
-
+	
 	/**
 	 *	Override de la fonction classique de la class FormProject
 	 *  Show a combo list with projects qualified for a third party
@@ -322,30 +310,5 @@ function _getArrayNomenclature(&$PDOdb, $TAssetOFLine=false, $fk_product=false)
 	
 	return $TRes;
 }
-
-function _calcQtyOfProductInOf(&$db, &$conf, &$product)
-{
-	$qty_to_make = $qty_needed = 0;
-	$sql = 'SELECT (SELECT SUM(aol.qty_used) - SUM(aol.qty_stock) 
-			        	FROM  '.MAIN_DB_PREFIX.'assetOf_line aol 
-			        	INNER JOIN '.MAIN_DB_PREFIX.'assetOf ao ON (aol.fk_assetOf = ao.rowid)
-			        	AND aol.fk_product = '.$product->id.' 
-			        	AND aol.type = "TO_MAKE"  
-			        	AND ao.status IN ("DRAFT", "VALID", "OPEN")) AS qty_to_make
-			        ,(SELECT '.( !empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL) ? 'SUM(aol.qty_needed) - SUM(aol.qty_used)' : ' (SUM(aol.qty_needed) - SUM(aol.qty_used)) + SUM(aol.qty_used) - SUM(aol.qty_stock)' ).'
-			        	FROM '.MAIN_DB_PREFIX.'assetOf_line aol
-						INNER JOIN '.MAIN_DB_PREFIX.'assetOf ao ON (aol.fk_assetOf = ao.rowid) 
-						WHERE aol.fk_product = '.$product->id.'
-						AND aol.type = "NEEDED"
-						AND ao.status IN ("DRAFT", "VALID", "OPEN")) AS qty_needed';
 	
-	$resql = $db->query($sql);
 	
-	if ($row = $db->fetch_object($resql)) 
-	{
-		$qty_to_make = is_null($row->qty_to_make) ? 0 : $row->qty_to_make;
-		$qty_needed = is_null($row->qty_needed) ? 0 : $row->qty_needed;
-	}
-	
-	return array($qty_to_make, $qty_needed);
-}

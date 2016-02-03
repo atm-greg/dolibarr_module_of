@@ -1,34 +1,10 @@
-# Dolibarr language file - fr_FR
-CHARSET=UTF-8
+Module104161Name = Ordre de fabrication
+Module104161Desc = Gestion des ordres de fabrication et de la production (GPAO)
 
-Module104161Name = OF
-Module104161Desc = Gestion des ordres de fabrication (GPAO)
-CreateAssetLot=Créer un lot d'équipement
-CreateAsset=Créer un équipement
-AssetSetup=Configuration du module Equipement
-LotDisabled=L'option pour utiliser des lots dans OF est désactiver
-ficheOF=Fiche
-ParametersWorkstation=Paramêtres Poste de travail
-ParametersWorkflow=Paramêtres Workflow
+ATMAbout = Ce module a été développé par <a href="http://www.atm-consulting.fr" target="_blank">ATM Consulting</a><br>Vous pouvez retrouver la documentation sur notre <a href="http://wiki.atm-consulting.fr/index.php/Accueil" target="_blank">wiki</a><br><br>Pour toute question technique ou retour, contactez-nous sur <a href="mailto:support@atm-consulting.fr">support@atm-consulting.fr</a><br><br>Pour toute question commerciale, contactez-nous sur <a href="mailto:contact@atm-consulting.fr">contact@atm-consulting.fr</a> ou au +33 9 77 19 50 70<br><br>Retrouvez nos autres modules sur <a href="http://www.dolistore.com/search.php?orderby=position&orderway=desc&search_query=atm&submit_search=Rechercher" target="_blank">Dolistore</a>
 
-# EQUIPEMENT
-GPAO=GPAO
-Asset=Equipement
-ListAsset=Liste des équipements
-ListAssetLent=Liste des équipements prêtés
-AssetDeleted=Equipement supprimé
-AssetType=Type d'Equipement
-AssetListType=Liste des types d'équipements
-AssetTypeMsgNothing=Il n'y a aucun type d'équipement à afficher
-AssetListFields=Champs des équipements
-AssetAddType=Ajouter un type d'équipement
-AssetCreateType=Création type d'équipement
-AssetToComplete=A completer
-AssetLotsList=Liste des Lots
-AssetLoaned=Prêté
-AssetDescDLUO=Date Limite d'Utilisation Optimale
-ImpossibleToCreateAsset=Impossible de créer l'équipement
-AssetDefaultDLUO=Decalage en jours de la date limite d'utilisation optimale
+ofSetup = Configuration du module OF
+ofAbout = A propos du module OF
 
 # ORDRE DE FABRICATION
 OFAsset=Ordre de fabrication
@@ -38,6 +14,7 @@ OFAssetDeleted=Ordre de fabrication supprimé
 createOFFile = Générer document papier
 WorkStation=Poste de travail
 workstation=poste de travail
+NewWorkStation=Nouveau poste de travail
 ListOrderProducts=Liste des produits de la commande
 AssetProductionOrder=Ordre de Fabrication
 AssetProductionOrderDraft=Brouillon
@@ -52,36 +29,7 @@ AssetAddNeededQtyZero = Ajouter les composants avec une quantité à 0
 AssetNegativeDestock = Permettre le déstockage des équipements dans l'OF même si la quantité est insufisante
 AssetChildOfStatusFollowParentStatus = Lors d'un changement de status de l'OF parent, peupler ce dernier sur le statut des OF's enfants si non supérieur
 AssetConcatPDF = Concaténer les documents PDF de fabrication des OFs enfants avec celui de l'OF parent
-NotConcatQtyForNeeded=Dissocier les quantités des produits, nécessaires à la fabrication, pour une même référence
-AssetUseDestockagePartiel=Utiliser le destockage/stockage partiel. <br />&nbsp;&nbsp;- Les produits nécessaires à la fabrication ce déstocke lorsque la "Quantité utilisée" est mise à jour sur un OF à l'état "Production en cours". <br />&nbsp;&nbsp;- Les produits à fabriqué s'ajouterons en stock lorsque la "Quantité utilisée" est mise à jour sur un OF à l'état "Production en cours". 
-ofLabelQtyTheoriqueMoinsOf=Stock théorique - quantité OF
-ofResultQty=%s (Qté à produire : %s / Qté utilisée : %s)
-OfShowQtytheorique=Afficher le stock théorique - stock OF sur l'onglet stock d'un produit
-ofPrintTicket=Impression étiquette
-ofListProductNeeded=<strong>Liste OF ayant besoin du produit</strong>
-set_ABRICOT_WKHTMLTOPDF_CMD=Commande pour la génération PDF des étiquettes (WkHTMLtoPDF doit être installé sur le serveur http://wkhtmltopdf.org/)
-OfNbTicketrPerPage=Valeur par défaut d'impression étiquette par page (-1 pour désactiver la fonctionnalité)
 
-#LOT
-ListAssetLot=Liste des lots d'équipement
-AssetLotDeleted=Lot supprimé
-AssetInLot=Equipements du lot
-OFAssetLotEmpty=Aucun lot saisie pour le produit : %s (%s)
-OFAssetCmdFournNotFinish=Impossible de terminer cet OF tant que la commande fournisseur n'est pas réceptionné partiellement ou totalement
-
-
-# POSTE DE TRAVAIL
-AssetWorkstation=Poste de travail
-AssetNewWorkstation=Nouveau poste de travail
-AssetAuthorizeAddWorkstationTime0OnOF=Autoriser l'ajout automatique dans l'OF d'un poste de travail présent dans la nomenclature produit même si son temps nécessaire est à 0
-set_ASSET_COEF_WS=Coefficient multiplicateur de temps lors de l'ajout d'un poste depuis une nomenclature produit
-AssetCreateProjectTaskOnValidation=Créer les tâches projets dès la validation et non pas qu'au lancement en production
-
-# TYPES D'EQUIPEMENT
-AssetType=Types d'équipement
-AssetNewType=Nouveau type d'équipement
-AssetDescCumulate=La notion de cumulable agit sur la sortie de stock des équipements.
-AssetDescPerishable=Si le type d'équipement est périssable il faudra renseigner sur l'équipement en question une date limite
 
 #Contrôle
 AssetControl=Contrôle
@@ -100,6 +48,22 @@ ListControlMultiple=Liste des valeurs
 AssetDeleteControlValueEvent=Suppression de la valeur enregistrée
 AssetEmptyControlMultiple=Aucune valeur à afficher
 AssetCreateControlMultiple=Créer une valeur
+
+#config
+AssetOFConfirmChangeStateTitle=Désactiver la création d'OF enfants
+AssetOFConfirmChangeState=Si vous désactivez cette fonctionnalitée, les paramètres liés à la création/suppression des OF seront eux aussi désactivés
+AssetMsgSaveTask=Tâche enregistrée
+AssetErrSaveTask=Erreur lors de l'enregistrement
+AssetMsgDeleteTask=Tâche supprimée
+AssetErrDeleteTask=Erreur lors de la suppression
+AssetMsgSaveControlValue=Valeur enregistrée
+AssetErrSaveControlValue=Erreur lors de l'enregistrement
+AssetMsgDeleteControlValue=Valeur supprimée
+AssetErrDeleteControlValue=Erreur lors de la suppression
+AssetListWorkstation=Liste des postes de travails
+UseManualWarehouse=Permet de définir manuellement les entrepôts à utiliser pour le stockage/destockage des équipements sur chaque OF
+UseProjectTaskHierarchique=Créer les tâches de manière hierarchique
+
 
 #Configuration
 DefaultWarehouseId=Entrepôt de gestion du stock par défaut du module Equipement
@@ -126,19 +90,4 @@ CreateAssetFromProductDescListProduct=La liste contient uniquement les produits 
 CreateAssetFromProductErrorBadMask=Si la valeur par défaut est "ErrorBadMask", c'est que votre produit n'est pas associé à un type d'équipement. <br />Retournez sur la fiche produit et modifier sa valeur.
 CreateAssetFromProductNumLot=Ce champ correspond au numéro de lot créé dans le menu "Equipement" => "Liste des Lots" => "Créer un lot d'équipement". Pour sélectionner un lot, tapez le début du numéro et une ou plusieurs propositions apparaîtront.
 
-AssetOFConfirmChangeStateTitle=Désactiver la création d'OF enfants
-AssetOFConfirmChangeState=Si vous désactivez cette fonctionnalitée, les paramètres liés à la création/suppression des OF seront eux aussi désactivés
-AssetMsgSaveTask=Tâche enregistrée
-AssetErrSaveTask=Erreur lors de l'enregistrement
-AssetMsgDeleteTask=Tâche supprimée
-AssetErrDeleteTask=Erreur lors de la suppression
-AssetMsgSaveControlValue=Valeur enregistrée
-AssetErrSaveControlValue=Erreur lors de l'enregistrement
-AssetMsgDeleteControlValue=Valeur supprimée
-AssetErrDeleteControlValue=Erreur lors de la suppression
-AssetListWorkstation=Liste des postes de travails
-UseManualWarehouse=Permet de définir manuellement les entrepôts à utiliser pour le stockage/destockage des équipements sur chaque OF
-UseProjectTaskHierarchique=Créer les tâches de manière hierarchique
 
-NewWorkStation=Nouveau poste de travail
-moduleWorkstationNeeded=Module Poste de travail requis

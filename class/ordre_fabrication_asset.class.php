@@ -11,7 +11,7 @@ class TAssetOF extends TObjetStd{
 			,'WEEK'=>'Dans la semaine'
 			,'MONTH'=>'Dans le mois'
 			
-		);
+	);
  
 	static $TStatus=array(
 			'DRAFT'=>'Brouillon'
@@ -20,7 +20,7 @@ class TAssetOF extends TObjetStd{
             ,'VALID'=>'Valide pour production'
             ,'OPEN'=>'En cours de production'
 			,'CLOSE'=>'Terminé'
-		);
+	);
 		
 	function __construct() {
 		$this->set_table(MAIN_DB_PREFIX.'assetOf');
@@ -61,6 +61,7 @@ class TAssetOF extends TObjetStd{
             $ws->of_status = $this->status;
             $ws->of_fk_project = $this->fk_project;
         }
+        
         
 		return $res;
 	}
@@ -142,24 +143,19 @@ class TAssetOF extends TObjetStd{
 	}
 	
 	function set_temps_fabrication() {
-		global $db, $user, $conf;
+		global $db, $user;    
         dol_include_once('/projet/class/task.class.php');
 			
 		$this->temps_estime_fabrication=0;
 		$this->temps_reel_fabrication=0;
-		$this->mo_cost = 0;
-		
-		$night = $this->isNight();
-		
+		$this->mo_cost = 0;	
+		    
 		foreach($this->TAssetWorkstationOF as &$ws) {
 			
 			$this->temps_estime_fabrication+=$ws->nb_hour;
 			$this->temps_reel_fabrication+=$ws->nb_hour_real;
 			
-			if ($night) $thm = $ws->ws->thm_night;
-			else $thm = $ws->ws->thm;
-			
-			$this->mo_cost+= $ws->nb_hour_real * ($thm + $ws->ws->thm_machine);
+			$this->mo_cost+= $ws->nb_hour_real * ($ws->ws->thm + $ws->ws->thm_machine);
 			
             if($ws->fk_project_task>0) {
                
@@ -174,23 +170,6 @@ class TAssetOF extends TObjetStd{
 			
 		}
 		
-	}
-	
-	function isNight()
-	{
-		global $conf;
-		
-		$night = false;
-		if (!empty($conf->global->WORKSTATION_TRANCHE_HORAIRE_THM_NUIT)) 
-		{
-			// Cas simple
-			$tranche = explode('-', $conf->global->WORKSTATION_TRANCHE_HORAIRE_THM_NUIT);
-			$heure_de_saisie = date('Hi');
-			
-			if ($heure_de_saisie >= $tranche[0] || $heure_de_saisie <= $tranche[1]) $night = true;
-		}
-		
-		return $night;
 	}
 	
 	function save(&$PDOdb) {
@@ -216,8 +195,6 @@ class TAssetOF extends TObjetStd{
 				unset($this->TAssetOFLine[$k]);
 			}
 		}
-		
-		if (!empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL)) $this->destockOrStockPartialQty($PDOdb, $this);
 		
 		if(empty($this->fk_project) && $conf->global->ASSET_AUTO_CREATE_PROJECT_ON_OF) $this->create_new_project();
 		
@@ -326,12 +303,10 @@ class TAssetOF extends TObjetStd{
 		global $conf;
 		
 		$Tab = $this->getProductComposition($PDOdb,$fk_product, $quantite_to_make, $fk_nomenclature, $fk_assetOf_line_parent);
-		foreach($Tab as $fk_product => $TProd) 
+		foreach($Tab as $prod) 
 		{
-		    foreach ($TProd as $prod)
-			{
-				$this->addLine($PDOdb, $prod->fk_product, 'NEEDED', $prod->qty,$fk_assetOf_line_parent, '', 0, 0, $prod->note_private );
-			}
+		    
+			$this->addLine($PDOdb, $prod->fk_product, 'NEEDED', $prod->qty,$fk_assetOf_line_parent, '', 0, 0, $prod->note_private );
 		}
 		
 		return true;
@@ -391,22 +366,13 @@ class TAssetOF extends TObjetStd{
 			$prod->qty = $row[1] * $qty_parent;
             $prod->note_private = isset($row['note_private']) ? $row['note_private'] : ''; 
 
-			if (!empty($conf->global->ASSETOF_NOT_CONCAT_QTY_FOR_NEEDED))
-			{
-				$Tab[$prod->fk_product][]=$prod;
+			if(isset($Tab[$prod->fk_product])) { //TODO veut-on vraiment cumuler ? voir si une conf n'est pas nécessaire ici ?
+				$Tab[$prod->fk_product]->qty += $prod->qty;
 			}
-			else
-			{
-				if(isset($Tab[$prod->fk_product])) 
-				{
-					$Tab[$prod->fk_product][0]->qty += $prod->qty;
-				}
-				else 
-				{
-					$Tab[$prod->fk_product][]=$prod;	
-				}
+			else {
+				$Tab[$prod->fk_product]=$prod;	
 			}
-			
+
 			if (!empty($conf->global->CREATE_CHILDREN_OF))
 			{
 				if(!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($row['childs'])) 
@@ -583,42 +549,6 @@ class TAssetOF extends TObjetStd{
 			$this->addWorkstation($PDOdb, $fk_product,$fk_nomenclature);
 			$this->addProductComposition($PDOdb,$fk_product, $quantite,$idAssetOFLine,$fk_nomenclature);
 		}
-		
-		// Pour ajouter directement les stations de travail, attachées au produit grâce à l'onglet "station de travail" disponible dans la fiche produit
-		if(!empty($conf->workstation->enabled) && $type == "TO_MAKE") 
-		{
-			//$sql = "SELECT fk_asset_workstation, nb_hour"; 
-			$sql = "SELECT fk_workstation as fk_asset_workstation, nb_hour";
-			//$sql.= " FROM ".MAIN_DB_PREFIX."asset_workstation_product";
-			$sql.= " FROM ".MAIN_DB_PREFIX."workstation_product";
-			$sql.= " WHERE fk_product = ".$fk_product;
-			$resql = $db->query($sql);
-			
-			if($resql) 
-			{
-				while($res = $db->fetch_object($resql)) 
-				{
-					$this->addofworkstation($PDOdb, $res->fk_asset_workstation, $res->nb_hour);
-				}
-	
-			}
-			
-			$this->save($PDOdb);
-			$this->load($PDOdb, $this->getId());
-		}
-	}
-	
-	function addofworkstation(&$PDOdb, $fk_asset_workstation, $nb_hour=0) 
-	{
-		global $conf;
-		 
-		$coef = 1;
-		if (!empty($conf->global->ASSET_COEF_WS)) $coef = $conf->global->ASSET_COEF_WS;
-		
-		$k = $this->addChild($PDOdb, 'TAssetWorkstationOF');
-		
-		$this->TAssetWorkstationOF[$k]->fk_asset_workstation = $fk_asset_workstation;
-		$this->TAssetWorkstationOF[$k]->nb_hour = $nb_hour * $coef;
 	}
 	
 	function updateLines(&$PDOdb,$TQty)
@@ -754,16 +684,13 @@ class TAssetOF extends TObjetStd{
 				
 				if($AssetOFLine->type == "TO_MAKE")
 				{
-					if (!empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL)) $AssetOFLine->stockQtyToMakeAsset($PDOdb, $of);
-					else {
-						if($AssetOFLine->makeAsset($PDOdb, $of, $AssetOFLine->fk_product, $AssetOFLine->qty-$AssetOFLine->qty_stock, 0, $AssetOFLine->lot_number)) {
-							//exit('1');
-							$AssetOFLine->destockAsset($PDOdb, -($AssetOFLine->qty-$AssetOFLine->qty_stock), true); // On stock les nouveaux équipements
-						}
-		                else{
-		                   setEventMessage($langs->trans('ImpossibleToCreateAsset'), 'errors') ;
-		                }	
+					if($AssetOFLine->makeAsset($PDOdb, $of, $AssetOFLine->fk_product, $AssetOFLine->qty-$AssetOFLine->qty_stock, 0, $AssetOFLine->lot_number)) {
+						//exit('1');
+					   $AssetOFLine->destockAsset($PDOdb, -($AssetOFLine->qty-$AssetOFLine->qty_stock), true); // On stock les nouveaux équipements
 					}
+	                else{
+	                   setEventMessage($langs->trans('ImpossibleToCreateAsset'), 'errors') ;
+	                }
 					
 				} 
 				else 
@@ -776,7 +703,7 @@ class TAssetOF extends TObjetStd{
 					}
 					
 					//$AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_stock - $AssetOFLine->qty_used);
-					if (empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL)) $AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_used - $AssetOFLine->qty_stock);
+					$AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_used - $AssetOFLine->qty_stock);
 				}
 			}
 		
@@ -808,9 +735,6 @@ class TAssetOF extends TObjetStd{
         return true;
 	}
 	
-	/*
-	 * Permet le lancer l'OF pour la production et de faire le destockage des NEEDED
-	 */
 	function openOF(&$PDOdb)
 	{
 		global $db, $user, $conf;
@@ -833,34 +757,19 @@ class TAssetOF extends TObjetStd{
 			
 	        if($of->launchOF($PDOdb)) 
 	        {
-				if (empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL)) $this->destockAssetByOf($PDOdb, $of);
+	            foreach($of->TAssetOFLine as $AssetOFLine)
+	            {
+	                if($AssetOFLine->type == 'NEEDED')
+	                {
+	                	list($qty,$qty_stock) = $AssetOFLine->convertQty();
+	                    //$AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_stock - $AssetOFLine->qty_used);
+	                    $AssetOFLine->destockAsset($PDOdb, $qty - $qty_stock);
+	                }
+	            }
 	        }
 		
 		}
 		
-	}
-	
-	function destockAssetByOf(&$PDOdb, &$of)
-	{
-		foreach($of->TAssetOFLine as $AssetOFLine)
-        {
-            if($AssetOFLine->type == 'NEEDED')
-            {
-            	list($qty,$qty_stock) = $AssetOFLine->convertQty();
-                //$AssetOFLine->destockAsset($PDOdb, $AssetOFLine->qty_stock - $AssetOFLine->qty_used);
-                $AssetOFLine->destockAsset($PDOdb, $qty - $qty_stock);
-            }
-        }
-	}
-	
-	function destockOrStockPartialQty(&$PDOdb, &$of)
-	{
-		if ($of->status != 'OPEN' && $of->status != 'CLOSE') return false;
-		foreach($of->TAssetOFLine as $AssetOFLine)
-        {
-            if($AssetOFLine->type == 'NEEDED') $AssetOFLine->destockQtyUsedAsset($PDOdb);
-			else $AssetOFLine->stockQtyToMakeAsset($PDOdb, $of);
-		}
 	}
 	
 	private function getEnfantsDirects() {
@@ -1510,13 +1419,10 @@ class TAssetOFLine extends TObjetStd{
         }
 	}
 	
-	/**
-	 * @param $update_qty_stock 	bool	comportement standard on maj la qté produite mais avec la notion de stockage partiel cet attribut a déjà été maj avant via le formulaire d'edition
-	 */
-    function destockAsset(&$PDOdb, $qty_to_destock, $add_only_qty_to_contenancereel=false, $update_qty_stock=true) 
+    function destockAsset(&$PDOdb, $qty_to_destock, $add_only_qty_to_contenancereel=false) 
     {
         global $conf;
-		
+       
         if($qty_to_destock==0) return false; // on attend une qty ! A noter que cela peut-être négatif en cas de sous conso il faut restocker un bout 
         
         $sens = ($qty_to_destock>0) ? -1 : 1;
@@ -1528,7 +1434,7 @@ class TAssetOFLine extends TObjetStd{
 		//echo $sens." x ".$qty_to_destock_rest.'<br>';
 		
 		$labelMvt = 'Utilisation via Ordre de Fabrication';
-		if($this->type == 'TO_MAKE') $sens == 1 ? $labelMvt = 'Création via Ordre de Fabrication' : $labelMvt = 'Suppression via Ordre de Fabrication';
+		if($this->type == 'TO_MAKE') $labelMvt = 'Création via Ordre de Fabrication';
 		
         if(!$conf->global->USE_LOT_IN_OF) 
         {
@@ -1588,7 +1494,8 @@ class TAssetOFLine extends TObjetStd{
         	
 		}
         //exit;
-    	if ($update_qty_stock) $this->qty_stock += -$sens * $qty_to_destock;
+    	$this->qty_stock += -$sens * $qty_to_destock;
+        
         return $this->save($PDOdb);
     }
     
@@ -1758,10 +1665,10 @@ class TAssetOFLine extends TObjetStd{
         
         return $r;
     }
-    function getAssetLinked(&$PDOdb, $only_ids=false) {
+    function getAssetLinked(&$PDOdb) {
         
         $TId = TAsset::get_element_element($this->getId(), 'TAssetOFLine', 'TAsset');
-        if ($only_ids) return $TId;
+        
 		//pre($TId,true);
 		
         $Tab = array();
@@ -1898,10 +1805,6 @@ class TAssetOFLine extends TObjetStd{
 		$this->loadFournisseurPrice($PDOdb);
 		
 		$this->load_product();
-		
-		//Utilisé pour le destockage/stockage partiel
-		$this->old_qty_stock = $this->qty_stock;
-		$this->old_qty_used = $this->qty_used;
 	}
 	
 	function load_product() {
@@ -2133,23 +2036,6 @@ class TAssetOFLine extends TObjetStd{
 		parent::set_values($row);
 	}
 	
-	//Fonction pour le destockage partiel
-	function destockQtyUsedAsset(&$PDOdb)
-	{
-    	//Ne pas prendre en compte le ->qty_stock dans le calcul car avec le destockage partiel le module ne destock pas le prévisionnel (Quantité réelle) lors du lancement en production
-    	//Cette donnée devient donc un simple indicateur
-		$qty_to_destock = $this->qty_used - $this->old_qty_used;
-		$this->destockAsset($PDOdb, $qty_to_destock); // Tant qu'on utilise l'attribut qty_used via le formulaire on as pas besoin de passer le 4eme param à false
-	}
-	
-	function stockQtyToMakeAsset(&$PDOdb, &$of)
-	{
-		$qty_make = ($this->qty_stock - $this->old_qty_stock) / -1;
-		
-		//var_dump($this->qty_stock, $this->old_qty_stock);
-		if ($this->makeAsset($PDOdb, $of, $this->fk_product, $qty_make, 0, $this->lot_number)) $this->destockAsset($PDOdb, $qty_make, true, false); // On stock les nouveaux équipements
-		else setEventMessage($langs->trans('ImpossibleToCreateAsset'), 'errors');
-	}
 }
 
 /*
@@ -2206,143 +2092,116 @@ class TAssetWorkstationOF extends TObjetStd{
 		}
 	}
 	
-	function createTask(&$PDOdb, &$db, &$conf, &$user, &$OF)
-	{
-		//l'ajout de poste de travail à un OF en ajax n'initialise pas le $user
-		if (!$user->id)	$user->id = GETPOST('user_id');
-
-		$ws = new TAssetWorkstation;
-		$ws->load($PDOdb, $this->fk_asset_workstation);
-		
-		$class_mod = empty($conf->global->PROJECT_TASK_ADDON) ? 'mod_task_simple' : $conf->global->PROJECT_TASK_ADDON;
-		$modTask = new $class_mod;
-		
-		$projectTask = new Task($db);
-		$projectTask->fk_project = $OF->fk_project;
-		$projectTask->ref = $modTask->getNextValue(0, $projectTask);
-		$projectTask->label = $ws->libelle;
-        
-        if(!empty($conf->global->ASSET_TASK_HIERARCHIQUE_BY_RANK)) {
-            $PDOdb->Execute("SELECT MAX(t.rowid) as rowid 
-            FROM ".MAIN_DB_PREFIX."projet_task t LEFT JOIN ".MAIN_DB_PREFIX."projet_task_extrafields tex ON (t.rowid=tex.fk_object)  
-            WHERE t.fk_projet=".$this->of_fk_project." AND tex.fk_of=".$this->fk_assetOf);
-            $PDOdb->Get_line();
-            $projectTask->fk_task_parent = (int)$PDOdb->Get_field('rowid');
-            
-        }
-        else{
-            $projectTask->fk_task_parent = 0;    
-        }
-		
-						
-		$projectTask->date_start = $OF->date_lancement;
-		$projectTask->date_end = $OF->date_besoin;
-		$projectTask->planned_workload = $this->nb_hour*3600;
-		
-        $projectTask->array_options['options_grid_use']=1;
-        $projectTask->array_options['options_fk_workstation']=$ws->getId();
-		$projectTask->array_options['options_fk_of']=$this->fk_assetOf;
-		
-		$p = new Product($db);
-		$line_product_to_make = $OF->getLineProductToMake();
-		if(!empty($line_product_to_make) && ($p->fetch($line_product_to_make->fk_product) > 0)) {
-			$projectTask->array_options['options_fk_product']=$p->id;
-		}
-        
-		$res = $projectTask->create($user);
-        if($res<0) {
-            var_dump($projectTask);
-            
-            exit('ErrorCreateTaskWS') ;
-        }
-        else{
-            $this->fk_project_task = $projectTask->id;
-        }
-		
-		$this->updateAssociation($PDOdb, $db, $projectTask);
-	}
-	
-	function updateTask(&$PDOdb, &$db, &$conf, &$user, &$OF)
-	{
-		if (!$user->id)	$user->id = GETPOST('user_id');
-		
-		$projectTask = new Task($db);
-		$projectTask->fetch($this->fk_project_task);
-		$projectTask->fk_project = $OF->fk_project;
-		
-		$projectTask->update($user);
-		
-		$this->updateAssociation($PDOdb, $db, $projectTask);
-	}
-	
-	function updateAssociation(&$PDOdb, &$db, &$projectTask)
-	{
-		// Association des utilisateurs aux tâches du projet
-		$TUsers = $this->get_users($PDOdb);
-		if(!empty($TUsers)) {
-			dol_include_once('/projet/class/project.class.php');
-			foreach ($TUsers as $id_user_associated_on_task) {
-				$p = new Project($db);
-				if($p->fetch($projectTask->fk_project) > 0) {
-					$p->add_contact($id_user_associated_on_task, 160, 'internal');
-					$projectTask->add_contact($id_user_associated_on_task, 180, 'internal');
-				}
-				
-			}
-		}
-	}
-	
-	function deleteTask(&$db, &$conf, &$user)
-	{
-		require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
-			
-		if (!$user->id)	$user->id = GETPOST('user_id');
-		
-		$projectTask = new Task($db);
-		$projectTask->fetch($this->fk_project_task);
-		$projectTask->delete($user);
-		
-		$this->fk_project_task = 0;
-	}
-	
-	function manageProjectTask(&$PDOdb, &$of)
-	{
-		global $db,$conf,$user;
-		
-		require_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
-		require_once DOL_DOCUMENT_ROOT.'/core/modules/project/task/'.$conf->global->PROJECT_TASK_ADDON.'.php';
-		
-		$action = '';
-		
-		if ($of->fk_project > 0 && $this->fk_project_task == 0) $action = 'createTask';
-		elseif ($of->fk_project > 0 && $this->fk_project_task > 0) $action = 'updateTask';
-		elseif ($of->fk_project == 0 && $this->fk_project_task > 0) $action = 'deleteTask';
-		
-		switch ($action) 
-		{
-			case 'createTask':
-				$this->createTask($PDOdb, $db, $conf, $user, $of);
-				break;
-			case 'updateTask':
-				$this->updateTask($PDOdb, $db, $conf, $user, $of);
-				break;
-			case 'deleteTask':
-				$this->deleteTask($db, $conf, $user);
-				break;
-			default:
-				break;
-		}
-	}
-	
 	function save(&$PDOdb)
 	{
-	 	global $conf;
+	 	global $db,$conf,$user;
 		
-        if (!empty($conf->global->ASSET_USE_PROJECT_TASK))
+        if (!empty($conf->global->ASSET_USE_PROJECT_TASK) && $this->of_status === 'VALID')
 		{
-			$of=new TAssetOF;
-        	$of->load($PDOdb, $this->fk_assetOf);
-			if ($of->status === 'VALID') $this->manageProjectTask($PDOdb, $of);
+		    
+			require_once DOL_DOCUMENT_ROOT.'/projet/class/task.class.php';
+			require_once DOL_DOCUMENT_ROOT.'/core/modules/project/task/'.$conf->global->PROJECT_TASK_ADDON.'.php';
+			
+			if ($this->of_fk_project > 0 && $this->fk_project_task == 0)
+			{
+				//l'ajout de poste de travail à un OF en ajax n'initialise pas le $user
+				if (!$user->id)	$user->id = GETPOST('user_id');
+				
+                $OF=new TAssetOF;
+                $OF->load($PDOdb, $this->fk_assetOf);
+                
+				$ws = new TAssetWorkstation;
+				$ws->load($PDOdb, $this->fk_asset_workstation);
+				
+				$class_mod = empty($conf->global->PROJECT_TASK_ADDON) ? 'mod_task_simple' : $conf->global->PROJECT_TASK_ADDON;
+				$modTask = new $class_mod;
+				
+				$projectTask = new Task($db);
+				$projectTask->fk_project = $OF->fk_project;
+				$projectTask->ref = $modTask->getNextValue(0, $projectTask);
+				$projectTask->label = $ws->libelle;
+                
+                if(!empty($conf->global->ASSET_TASK_HIERARCHIQUE_BY_RANK)) {
+                    $PDOdb->Execute("SELECT MAX(t.rowid) as rowid 
+                    FROM ".MAIN_DB_PREFIX."projet_task t LEFT JOIN ".MAIN_DB_PREFIX."projet_task_extrafields tex ON (t.rowid=tex.fk_object)  
+                    WHERE t.fk_projet=".$this->of_fk_project." AND tex.fk_of=".$this->fk_assetOf);
+                    $PDOdb->Get_line();
+                    $projectTask->fk_task_parent = (int)$PDOdb->Get_field('rowid');
+                    
+                }
+                else{
+                    $projectTask->fk_task_parent = 0;    
+                }
+				
+								
+				$projectTask->date_start = $OF->date_lancement;
+				$projectTask->date_end = $OF->date_besoin;
+				$projectTask->planned_workload = $this->nb_hour*3600;
+				
+                $projectTask->array_options['options_grid_use']=1;
+                $projectTask->array_options['options_fk_workstation']=$ws->getId();
+				$projectTask->array_options['options_fk_of']=$this->fk_assetOf;
+				
+				$p = new Product($db);
+				$line_product_to_make = $OF->getLineProductToMake();
+				if(!empty($line_product_to_make) && ($p->fetch($line_product_to_make->fk_product) > 0)) {
+					$projectTask->array_options['options_fk_product']=$p->id;
+				}
+                
+				$res = $projectTask->create($user);
+                if($res<0) {
+                    var_dump($projectTask);
+                    
+                    exit('ErrorCreateTaskWS') ;
+                }
+                else{
+                    $this->fk_project_task = $projectTask->id;    
+                }
+                
+				
+				
+			}
+			elseif ($this->of_fk_project > 0 && $this->fk_project_task > 0)
+			{
+				if (!$user->id)	$user->id = GETPOST('user_id');
+				
+				$projectTask = new Task($db);
+				$projectTask->fetch($this->fk_project_task);
+				$projectTask->fk_project = $OF->fk_project;
+				
+				$projectTask->update($user);
+			}
+			elseif ($this->of_fk_project == 0 && $this->fk_project_task > 0)
+			{
+				require_once DOL_DOCUMENT_ROOT.'/projet/class/project.class.php';
+				
+				if (!$user->id)	$user->id = GETPOST('user_id');
+				
+				$projectTask = new Task($db);
+				$projectTask->fetch($this->fk_project_task);
+				$projectTask->delete($user);
+				
+				$this->fk_project_task = 0;
+			}
+			else 
+			{
+				//Rien à faire
+			}
+			
+			// Association des utilisateurs aux tâches du projet
+			$TUsers = $this->get_users($PDOdb);
+			if(!empty($TUsers)) {
+				dol_include_once('/projet/class/project.class.php');
+				foreach ($TUsers as $id_user_associated_on_task) {
+					$p = new Project($db);
+					if($p->fetch($projectTask->fk_project) > 0) {
+						$p->add_contact($id_user_associated_on_task, 160, 'internal');
+						$projectTask->add_contact($id_user_associated_on_task, 180, 'internal');
+					}
+					
+				}
+			}
+			
 		}
 		
 		parent::save($PDOdb);
@@ -2588,12 +2447,23 @@ class TAssetWorkstationOF extends TObjetStd{
 
 dol_include_once('/workstation/class/workstation.class.php');
 
-if (class_exists('TWorkstation')) {
+if (class_exists('TWorkstation')) 
+{
 	class TAssetWorkstation extends TWorkstation {
-	//TODO remove it and use workstation object
+	/*
+	 * Atelier de fabrication d'équipement
+	 * */
+		
 		function __construct() {
+			//$this->set_table(MAIN_DB_PREFIX.'asset_workstation');
+	    	//$this->TChamps = array(); 	 
 	    	
 	    	parent::__construct();
+	    	 
+			//$this->add_champs('entity,fk_usergroup','type=entier;index;');
+			//$this->add_champs('libelle','type=chaine;');
+			//$this->add_champs('nb_hour_prepare,nb_hour_manufacture,nb_hour_max','type=float;'); // charge maximale du poste de travail
+			
 		    $this->start();
 			
 		}
@@ -2613,8 +2483,9 @@ if (class_exists('TWorkstation')) {
 			parent::save($PDOdb);
 		}
 		
-	}
+	}	
 }
+
 
 class TAssetWorkstationTask extends TObjetStd
 {

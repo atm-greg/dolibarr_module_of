@@ -1,9 +1,9 @@
 <?php
 
 require('config.php');
-dol_include_once('/asset/class/asset.class.php');
-dol_include_once('/asset/class/ordre_fabrication_asset.class.php');
-dol_include_once('/asset/lib/asset.lib.php');
+
+dol_include_once('/of/class/ordre_fabrication_asset.class.php');
+dol_include_once('/of/lib/of.lib.php');
 dol_include_once('/core/lib/ajax.lib.php');
 dol_include_once('/core/lib/product.lib.php');
 dol_include_once('/core/lib/admin.lib.php');
@@ -15,8 +15,7 @@ dol_include_once('/core/lib/date.lib.php');
 dol_include_once('/core/lib/pdf.lib.php');
 dol_include_once('/nomenclature/class/nomenclature.class.php');
 
-if(!$user->rights->asset->all->lire) accessforbidden();
-if(!$user->rights->asset->of->write) accessforbidden();
+if(!$user->rights->of->of->lire) accessforbidden();
 
 // Load traductions files requiredby by page
 $langs->load("other");
@@ -129,6 +128,7 @@ function _action() {
 				}
 			}
 
+			
 			$assetOf->entity = $conf->entity;
 
 			//Permet de mettre à jour le lot de l'OF parent
@@ -197,7 +197,7 @@ function _action() {
 			$assetOf->delete($PDOdb);
 			
 			
-			header('Location: '.dol_buildpath('/asset/liste_of.php?delete_ok=1',1));
+			header('Location: '.dol_buildpath('/of/liste_of.php?delete_ok=1',1));
 			exit;
 			
 			break;
@@ -230,7 +230,7 @@ function _action() {
 			$TFilePath = get_tab_file_path($TRes);
 			//var_dump($TFilePath);exit;
 			if($conf->global->ASSET_CONCAT_PDF) {
-				ob_start();
+			
 				$pdf=pdf_getInstance();
 				if (class_exists('TCPDF'))
 				{
@@ -241,8 +241,8 @@ function _action() {
 				
 				if ($conf->global->MAIN_DISABLE_PDF_COMPRESSION) $pdf->SetCompression(false);
 				//$pdf->SetCompression(false);
-         
-				$pagecount = concatPDFOF($pdf, $TFilePath);
+				                 
+				$pagecount = concat($pdf, $TFilePath);
 				
 				if ($pagecount)
 				{
@@ -252,9 +252,9 @@ function _action() {
 						@chmod($file, octdec($conf->global->MAIN_UMASK));
 					}
 				}
-				ob_clean();
+				
 			}
-
+			
 			header("Location: ".DOL_URL_ROOT."/document.php?modulepart=asset&entity=1&file=".$TRes[0]['dir_name']."/".$TRes[0]['num_of'].".pdf");
 			
 			break;
@@ -386,18 +386,11 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 		
 		$qty = !empty($v->qty_needed) ? $v->qty_needed : $v->qty; 
 		
-		$TAssetType = new TAsset_type;
-		$TAssetType->load($PDOdb, $prod->array_options['options_type_asset']);
-		
-		//echo $TAssetType->measuring_units.'<br>';
-		
-		$unitLabel = ($TAssetType->measuring_units == 'unit' || $TAssetType->gestion_stock == 'UNIT') ? 'unité(s)' : measuring_units_string($prod->weight_units,'weight');
-	
 		if($v->type == "TO_MAKE") {
 			
 			$TToMake[] = array(
 				'type' => $v->type
-				, 'qte' => $qty." ".utf8_decode($unitLabel)
+				, 'qte' => $qty
 				, 'nomProd' => $prod->ref
 				, 'designation' => utf8_decode($prod->label)
 				, 'dateBesoin' => date("d/m/Y", $assetOf->date_besoin)
@@ -407,25 +400,27 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 
 		}
 		else if($v->type == "NEEDED") {
-			
-			//pre($prod,true);exit;
-			$TAssetType = new TAsset_type;
-			$TAssetType->load($PDOdb, $prod->array_options['options_type_asset']);
-			
-			//echo $TAssetType->measuring_units.'<br>';
-			
-			$unitLabel = ($TAssetType->measuring_units == 'unit' || $TAssetType->gestion_stock == 'UNIT') ? 'unité(s)' : measuring_units_string($prod->weight_units,'weight');
-			
-			//echo $unitLabel.'<br>';
-			
+	
+			$unitLabel = "";
+
+			if($prod->weight_units == 0) {
+				$unitLabel = "Kg";
+			} else if ($prod->weight_units == -3) {
+				$unitLabel = "g";
+			} else if ($prod->weight_units == -6) {
+				$unitLabel = "mg";
+			} else if ($prod->weight_units == 99) {
+				$unitLabel = "livre(s)";
+			}
+								
 			$TNeeded[] = array(
 				'type' => $conf->nomenclature->enabled ? $TTypesProductsNomenclature[$v->fk_product] : $v->type
 				, 'qte' => $qty
 				, 'nomProd' => $prod->ref
 				, 'designation' => utf8_decode($prod->label)
 				, 'dateBesoin' => date("d/m/Y", $assetOf->date_besoin)
-				, 'poids' => ($prod->weight) ? $prod->weight : 1
-				, 'unitPoids' => utf8_decode($unitLabel)
+				, 'poids' => $prod->weight
+				, 'unitPoids' => $unitLabel
 				, 'finished' => $prod->finished?"PM":"MP"
 				, 'lot_number' => $v->lot_number ? "\n(Lot numero ".$v->lot_number.")" : ""
 				, 'code_suivi_ponderal' => $prod->array_options['options_suivi_ponderal'] ? "\n(Code suivi ponderal : ".$prod->array_options['options_suivi_ponderal'].")" : ""
@@ -442,7 +437,7 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 		}
 
 	}
-//exit;
+
 	// On charge le tableau d'infos sur les stations de travail de l'OF courant
 	foreach($assetOf->TAssetWorkstationOF as $k => $v) {
 		
@@ -474,7 +469,7 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 	}
 	
 	$dirName = 'OF'.$assetOf->rowid.'('.date("d_m_Y").')';
-	$dir = DOL_DATA_ROOT.'/asset/'.$dirName.'/';
+	$dir = DOL_DATA_ROOT.'/of/'.$dirName.'/';
 	
 	@mkdir($dir, 0777, true);
 	
@@ -495,7 +490,7 @@ function generateODTOF(&$PDOdb, &$assetOf) {
 	
 	$barcode_pic = getBarCodePicture($assetOf);
 	
-	$file_path = $TBS->render(dol_buildpath('/asset/exempleTemplate/'.$template)
+	$file_path = $TBS->render(dol_buildpath('/of/exempleTemplate/'.$template)
 		,array(
 			'lignesToMake'=>$TToMake
 			,'lignesNeeded'=>$TNeeded
@@ -545,7 +540,7 @@ function drawCross($im, $color, $x, $y){
 
 function getBarCodePicture(&$assetOf) {
 	
-	dol_include_once('/asset/php_barcode/php-barcode.php');
+	dol_include_once('/of/php_barcode/php-barcode.php');
 	
 	$code = $assetOf->numero;
 	
@@ -606,22 +601,13 @@ function _fiche_ligne(&$form, &$of, $type){
         if(is_null($product)) {
             $product=new Product($db);
             $product->fetch($TAssetOFLine->fk_product);
-			$product->fetch_optionals();
         }
-		
-		
+
 		$conditionnement = $TAssetOFLine->conditionnement;
-		
-		$TAssetType = new TAsset_type;
-		$TAssetType->load($PDOdb, $product->array_options['options_type_asset']);
-		
-		//echo $TAssetType->measuring_units.'<br>';
-		
-		$conditionnement_unit = ($TAssetType->measuring_units == 'unit' || $TAssetType->gestion_stock == 'UNIT') ? 'unité(s)' : $TAssetOFLine->libUnite();
-		//$conditionnement_unit = $TAssetOFLine->libUnite(); 
+		$conditionnement_unit = $TAssetOFLine->libUnite(); 
 		
 		if($TAssetOFLine->measuring_units!='unit' && !empty($TAssetOFLine->measuring_units)) {
-            $conditionnement_label = ' / '.$conditionnement." ".$conditionnement_unit;
+            $conditionnement_label = ' / '.$conditionnement.$conditionnement_unit;
             $conditionnement_label_edit = ' par '.$form->texte('', 'TAssetOFLine['.$k.'][conditionnement]', $conditionnement, 5,5,'','').$conditionnement_unit;
 		    
 		}
@@ -754,8 +740,7 @@ function _fiche_ligne(&$form, &$of, $type){
 				        .$stock_tomake._fiche_ligne_asset($PDOdb,$form, $of, $TAssetOFLine, false)
 		        ,'nomenclature'=>$nomenclature
 				,'addneeded'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="#null" statut="'.$of->status.'" onclick="addAllLines('.$of->getId().','.$TAssetOFLine->getId().',this);">'.img_picto('Mettre à jour les produits nécessaires', 'previous.png').'</a>' : ''
-				,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,5,'','').$conditionnement_label_edit : $TAssetOFLine->qty.$conditionnement_label
-				,'qty_stock'=>($of->status=='OPEN' || $of->status=='CLOSE') ? $form->texte('', 'TAssetOFLine['.$k.'][qty_stock]', $TAssetOFLine->qty_stock, 5,5,'','').$conditionnement_label_edit : $TAssetOFLine->qty_stock.$conditionnement_label
+				,'qty'=>($of->status=='DRAFT') ? $form->texte('', 'TAssetOFLine['.$k.'][qty]', $TAssetOFLine->qty, 5,5,'','').$conditionnement_label_edit : $TAssetOFLine->qty.$conditionnement_label 
 				,'fk_product_fournisseur_price' => $form->combo('', 'TAssetOFLine['.$k.'][fk_product_fournisseur_price]', $Tab, ($TAssetOFLine->fk_product_fournisseur_price != 0) ? $TAssetOFLine->fk_product_fournisseur_price : $selected, 1, '', 'style="max-width:250px;"')
 				,'delete'=> ($form->type_aff=='edit' && $of->status=='DRAFT') ? '<a href="#null" onclick="deleteLine('.$TAssetOFLine->getId().',\'TO_MAKE\');">'.img_picto('Supprimer', 'delete.png').'</a>' : ''
 				,'fk_entrepot' => !empty($conf->global->ASSET_MANUAL_WAREHOUSE) && $of->status == 'DRAFT' && $form->type_aff == 'edit' ? $formProduct->selectWarehouses($TAssetOFLine->fk_entrepot, 'TAssetOFLine['.$k.'][fk_entrepot]', '', 0, 0, $TAssetOFLine->fk_product) : $TAssetOFLine->getLibelleEntrepot($PDOdb)
@@ -814,7 +799,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 	
 	//pre($assetOf,true);
 	llxHeader('',$langs->trans('OFAsset'),'','');
-	print dol_get_fiche_head(assetPrepareHead( $assetOf, 'assetOF') , 'fiche', $langs->trans('OFAsset'));
+	print dol_get_fiche_head(ofPrepareHead( $assetOf, 'assetOF') , 'fiche', $langs->trans('OFAsset'));
 	
 	?><style type="text/css">
 		#assetChildContener .OFMaster {
@@ -931,7 +916,7 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 	$parameters = array('id'=>$assetOf->getId());
 	$reshook = $hookmanager->executeHooks('formObjectOptions',$parameters,$assetOf,$mode);    // Note that $action and $object may have been modified by hook
 	
-	if($fk_product_to_add>0) {
+	if($fk_product_to_add>0) { 
 		$product_to_add = new Product($db);
 		$product_to_add->fetch($fk_product_to_add);
 		
@@ -974,12 +959,12 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 				,'status'=>$form->combo('','status',TAssetOf::$TStatus,$assetOf->status)
 				,'statustxt'=>TAssetOf::$TStatus[$assetOf->status]
 				,'idChild' => (!empty($Tid)) ? '"'.implode('","',$Tid).'"' : ''
-				,'url' => dol_buildpath('/asset/fiche_of.php', 2)
-				,'url_liste' => ($assetOf->getId()) ? dol_buildpath('/asset/fiche_of.php?id='.$assetOf->getId(), 2) : dol_buildpath('/asset/liste_of.php', 2)
+				,'url' => dol_buildpath('/of/fiche_of.php', 2)
+				,'url_liste' => ($assetOf->getId()) ? dol_buildpath('/of/fiche_of.php?id='.$assetOf->getId(), 2) : dol_buildpath('/asset/liste_of.php', 2)
 				,'fk_product_to_add'=>$fk_product_to_add
 				,'fk_nomenclature'=>$fk_nomenclature
 				,'fk_assetOf_parent'=>($assetOf->fk_assetOf_parent ? $assetOf->fk_assetOf_parent : '')
-				,'link_assetOf_parent'=>($hasParent ? '<a href="'.dol_buildpath('/asset/fiche_of.php?id='.$TAssetOFParent->rowid, 2).'">'.$TAssetOFParent->numero.'</a>' : '')
+				,'link_assetOf_parent'=>($hasParent ? '<a href="'.dol_buildpath('/of/fiche_of.php?id='.$TAssetOFParent->rowid, 2).'">'.$TAssetOFParent->numero.'</a>' : '')
 				
 				,'mo_cost'=>price($assetOf->mo_cost,0,'',1,-1,2)
 				,'compo_cost'=>price($assetOf->compo_cost,0,'',1,-1,2)
@@ -1002,7 +987,6 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 				,'user_id'=>$user->id
 				,'workstation_module_activate'=>(int) $conf->workstation->enabled
 				,'show_cost'=>(int)$user->rights->asset->of->price
-				,'OF_USE_DESTOCKAGE_PARTIEL'=>!empty($conf->global->OF_USE_DESTOCKAGE_PARTIEL) ? 1 : 0
 			)
 		)
 	);
@@ -1041,7 +1025,7 @@ function _fiche_ligne_control(&$PDOdb, $fk_assetOf, $assetOf=-1)
 	{
 		$res[] = array(
 			'id' => $PDOdb->Get_field('id')
-			,'libelle' => '<a href="'.DOL_URL_ROOT.'/custom/asset/control.php?id='.$PDOdb->Get_field('id').'">'.$PDOdb->Get_field('libelle').'</a>'
+			,'libelle' => '<a href="'.dol_include_once('/of/control.php?id='.$PDOdb->Get_field('id')).'">'.$PDOdb->Get_field('libelle').'</a>'
 			,'type' => TAssetControl::$TType[$PDOdb->Get_field('type')]
 			,'action' => '<input type="checkbox" value="'.$PDOdb->Get_field('id').'" name="TControl[]" />'
 			,'question' => $PDOdb->Get_field('question')
@@ -1058,7 +1042,7 @@ function _fiche_control(&$PDOdb, &$assetOf)
 	global $langs,$db,$conf;
 	
 	llxHeader('',$langs->trans('OFAsset'),'','');
-	print dol_get_fiche_head(assetPrepareHead( $assetOf, 'assetOF') , 'controle', $langs->trans('OFAsset'));
+	print dol_get_fiche_head(ofPrepareHead( $assetOf, 'assetOF') , 'controle', $langs->trans('OFAsset'));
 	
 	/******/
 	$TBS=new TTemplateTBS();
@@ -1095,9 +1079,10 @@ function _fiche_control(&$PDOdb, &$assetOf)
 	llxFooter('$Date: 2011/07/31 22:21:57 $ - $Revision: 1.19 $');
 }
 
+if(!function_exists('concat')) {
 
-function concatPDFOF(&$pdf,$files) {
-
+function concat(&$pdf,$files) {
+	
 	foreach($files as $file)
 	{
 		$pagecount = $pdf->setSourceFile($file);
@@ -1112,4 +1097,5 @@ function concatPDFOF(&$pdf,$files) {
 	}
 	
 	return $pagecount;
+}
 }

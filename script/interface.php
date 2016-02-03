@@ -3,8 +3,6 @@
 define('INC_FROM_CRON_SCRIPT', true);
 set_time_limit(0);
 require('../config.php');
-require('../lib/asset.lib.php');
-require('../class/asset.class.php');
 require('../class/ordre_fabrication_asset.class.php');
 
 //Interface qui renvoie les emprunts de ressources d'un utilisateur
@@ -16,12 +14,6 @@ traite_get($PDOdb, $get);
 
 function traite_get(&$PDOdb, $case) {
 	switch (strtolower($case)) {
-        case 'autocomplete':
-            __out(_autocomplete($PDOdb,GETPOST('fieldcode'),GETPOST('term'),GETPOST('fk_product'),GETPOST('type_product')));
-            break;
-        case 'autocomplete-serial':
-            __out(_autocompleteSerial($PDOdb,GETPOST('lot_number'), GETPOST('fk_product')));
-            break;
 		case 'addofproduct':
 			__out(_addofproduct($PDOdb,GETPOST('id_assetOf'),GETPOST('fk_product'),GETPOST('type'), GETPOST('default_qty_to_make', 'int') ? GETPOST('default_qty_to_make', 'int'): 1  ));
 			break;
@@ -36,9 +28,6 @@ function traite_get(&$PDOdb, $case) {
 			break;	
 		case 'deleteofworkstation':	
 			__out(_deleteofworkstation($PDOdb,GETPOST('id_assetOf'), GETPOST('fk_asset_workstation_of') ));
-			break;
-		case 'measuringunits':
-			__out(_measuringUnits(GETPOST('type'), GETPOST('name')), 'json');
 			break;
 		case 'getofchildid':
 			$Tid = array();
@@ -98,7 +87,7 @@ function _validerOFLigneParent(&$PDOdb, $of, $fk_nomenclature, &$line) {
 
 function _getNomenclatures(&$PDOdb, $fk_product)
 {
-	include_once DOL_DOCUMENT_ROOT.'/custom/nomenclature/class/nomenclature.class.php';
+	dol_include_once('/nomenclature/class/nomenclature.class.php');
 	
 	$TRes = array();
 	
@@ -107,73 +96,24 @@ function _getNomenclatures(&$PDOdb, $fk_product)
 	return $TNomenclature;
 }
 
+function _addofworkstation(&$PDOdb, $id_assetOf, $fk_asset_workstation, $nb_hour=0) 
+{
+	$of=new TAssetOF;
+	$of->load($PDOdb, $id_assetOf);
+	
+	$k = $of->addChild($PDOdb, 'TAssetWorkstationOF');
+	
+	$of->TAssetWorkstationOF[$k]->fk_asset_workstation = $fk_asset_workstation;
+	$of->TAssetWorkstationOF[$k]->nb_hour = $nb_hour;
+	$of->save($PDOdb);
+}
+
 function _deleteofworkstation(&$PDOdb, $id_assetOf, $fk_asset_workstation_of) 
 {
 	$of=new TAssetOF;
 	$of->load($PDOdb, $id_assetOf);
 	$of->removeChild('TAssetWorkstationOF', $fk_asset_workstation_of);
 	$of->save($PDOdb);	
-}
-
-function _autocompleteSerial(&$PDOdb, $lot='', $fk_product=0) {
-    global $conf;   
-	
-    //$sql = 'SELECT DISTINCT(a.serial_number) ';
-    $sql = 'SELECT a.rowid, a.serial_number, a.contenancereel_value ';
-    $sql .= 'FROM '.MAIN_DB_PREFIX.'asset as a WHERE 1 ';
-	
-	if($conf->ASSET_NEGATIVE_DESTOCK) $sql .= ' AND a.contenancereel_value > 0 ';
-	
-    if ($fk_product > 0) $sql .= ' AND fk_product = '.(int) $fk_product.' ';
-    if (!empty($lot)) $sql .= ' AND lot_number LIKE '.$PDOdb->quote('%'.$lot.'%').' ';
-    
-    $sql .= 'ORDER BY a.serial_number';
-    //  print $sql;
-    $PDOdb->Execute($sql);
-    while ($PDOdb->Get_line()) 
-    {
-    	$serial = $PDOdb->Get_field('serial_number');
-		
-		/* Merci de conserver les crochets autour de l'ID et de le laisser en début de chaine
-		 * je m'en sert pour matcher côté js pour retrouver facilement l'ID dans la chaîne pour le lien d'ajout
-		 */
-        $TResult[] = '['.$PDOdb->Get_field('rowid').'] Numéro : '.($serial ? $serial : '(vide)').', contenance actuelle : '.$PDOdb->Get_field('contenancereel_value');
-    }
-    
-    $PDOdb->close();
-    return $TResult;
-    
-}
-//Autocomplete sur les différents champs d'une ressource
-function _autocomplete(&$PDOdb,$fieldcode,$value,$fk_product=0,$type_product='NEEDED',$lot_number=0, $table='assetlot')
-{
-	$value = trim($value);
-	
-	$sql = 'SELECT DISTINCT(al.'.$fieldcode.') ';
-	$sql .= 'FROM '.MAIN_DB_PREFIX.$table.' as al ';
-	
-	if($fk_product)
-	{
-		$sql .= 'LEFT JOIN '.MAIN_DB_PREFIX.'asset as a ON (a.'.$fieldcode.' = al.'.$fieldcode.' '.(($type_product == 'NEEDED' && $conf->ASSET_NEGATIVE_DESTOCK) ? 'AND a.contenancereel_value > 0' : '').') ';
-		//var_dump($sql);
-		$sql .= 'LEFT JOIN '.MAIN_DB_PREFIX.'product as p ON (p.rowid = a.fk_product) ';
-	}
-	
-	if (!empty($value)) $sql .= 'WHERE al.'.$fieldcode.' LIKE '.$PDOdb->quote($value.'%').' ';
-	
-	if (!empty($value) && $fk_product && $type_product == 'NEEDED') $sql .= 'AND p.rowid = '.(int) $fk_product.' ';
-	elseif ($fk_product && $type_product == 'NEEDED') $sql .= 'WHERE p.rowid = '.(int) $fk_product.' ';
-	
-	$sql .= 'ORDER BY al.'.$fieldcode;
-//		print $sql;
-	$PDOdb->Execute($sql);
-	while ($PDOdb->Get_line()) 
-	{
-		$TResult[] = $PDOdb->Get_field($fieldcode);
-	}
-	
-	$PDOdb->close();
-	return $TResult;
 }
 
 function _addofproduct(&$PDOdb,$id_assetOf,$fk_product,$type,$qty=1, $lot_number = '')
@@ -186,6 +126,28 @@ function _addofproduct(&$PDOdb,$id_assetOf,$fk_product,$type,$qty=1, $lot_number
 	$TassetOF->load($PDOdb, $id_assetOf);
 	$TassetOF->addLine($PDOdb, $fk_product, $type,$qty,0, $lot_number, GETPOST('fk_nomenclature', 'int'));
 	$TassetOF->save($PDOdb);
+	
+	// Pour ajouter directement les stations de travail, attachées au produit grâce à l'onglet "station de travail" disponible dans la fiche produit
+	if(!empty($conf->workstation->enabled) && $type == "TO_MAKE") 
+	{
+		//$sql = "SELECT fk_asset_workstation, nb_hour"; 
+		$sql = "SELECT fk_workstation as fk_asset_workstation, nb_hour";
+		//$sql.= " FROM ".MAIN_DB_PREFIX."asset_workstation_product";
+		$sql.= " FROM ".MAIN_DB_PREFIX."workstation_product";
+		$sql.= " WHERE fk_product = ".$fk_product;
+		$resql = $db->query($sql);
+		
+		if($resql) 
+		{
+			while($res = $db->fetch_object($resql)) 
+			{
+				_addofworkstation($PDOdb, $id_assetOf, $res->fk_asset_workstation, $res->nb_hour);
+			}
+
+		}
+		
+	}
+
 }
 
 function _deletelineof(&$PDOdb,$idLine,$type){
@@ -213,8 +175,6 @@ function _addlines(&$PDOdb,$idLine,$qty)
 	//$PDOdb->debug = true;
 	$TAssetOFLine->load($PDOdb, $idLine);
 	$TAssetOFLine->qty = $_REQUEST['qty'];
-	if ($TAssetOFLine->type == 'TO_MAKE') { $TAssetOFLine->qty_needed = $TAssetOFLine->qty_used = $TAssetOFLine->qty; }
-	
 	$TAssetOFLine->save($PDOdb);
 
 	//On charge l'OF pour pouvoir parcourir ses lignes et mettre à jour les quantités
@@ -248,7 +208,7 @@ function _updateToMake($TAssetOFChildId = array(), &$PDOdb, &$db, &$conf, $fk_pr
 			if ($line->type == 'TO_MAKE' && $line->fk_product == $fk_product)
 			{
 				$TIdLineModified[] = $TAssetOF->getId();
-				$line->qty_needed = $line->qty = $line->qty_used = $qty;
+				$line->qty = $qty;
 				$line->save($PDOdb);
 
 				_updateNeeded($TAssetOF, $PDOdb, $db, $conf, $line->fk_product, $line->qty, $TIdLineModified, $TNewIdAssetOF, $line);
@@ -262,27 +222,11 @@ function _updateToMake($TAssetOFChildId = array(), &$PDOdb, &$db, &$conf, $fk_pr
     return false;
 }
 
-function _measuringUnits($type, $name)
-{
-	global $db;
-	
-	require_once DOL_DOCUMENT_ROOT.'/product/class/html.formproduct.class.php';
-	require_once DOL_DOCUMENT_ROOT.'/core/lib/product.lib.php';
-	
-	$html=new FormProduct($db);
-	
-	if($type == 'unit') return array(' unité(s)');
-	else return array($html->load_measuring_units($name, $type, 0));
-}
-
 function _getArbo(&$PDOdb, &$TAssetOFLine, $fk_product, $fk_nomenclature)
 {
-	include_once DOL_DOCUMENT_ROOT.'/custom/nomenclature/class/nomenclature.class.php';
+	dol_include_once('/nomenclature/class/nomenclature.class.php');
 	
 	$TRes = array();
-	
-	//$TNomen = TNomenclature::get($PDOdb, $fk_product);
-	
 	
 	$TCompare = array();
 	foreach ($TAssetOFLine->TAssetOFLine as $line)
@@ -346,22 +290,21 @@ function _updateNeeded($TAssetOF, &$PDOdb, &$db, &$conf, $fk_product, $qty, &$TI
 		// On ne modifie les quantités que des produits NEEDED qui sont des sous produits du produit TO_MAKE
 		if($line->type == 'NEEDED' && !empty($TComposition[$line->fk_product][1])) 
 		{
-			//$line->qty = $line->qty_needed = $line->qty_used = $qty * $TComposition[$line->fk_product][1];
-			$line->qty_needed = $qty * $TComposition[$line->fk_product][1];
+			$line->qty = $line->qty_needed = $line->qty_used = $qty * $TComposition[$line->fk_product][1];
 			$line->save($PDOdb);
 
 			//_updateToMake : si un OF enfant existe pour ce produit NEEDED alors on met à jour les qté de celui-ci
-	        if(!_updateToMake($TAssetOFChildId, $PDOdb, $db, $conf, $line->fk_product, $line->qty_needed, $TIdLineModified, $TNewIdAssetOF)) {
+	        if(!_updateToMake($TAssetOFChildId, $PDOdb, $db, $conf, $line->fk_product, $line->qty, $TIdLineModified, $TNewIdAssetOF)) {
 				//Si on entre là, c'est que la création d'un OF doit être efféctué, uniquement si la conf nous le permet
 				
 				//TODO attention la création de l'OF ne prend pas en compte la quantité encore en stock
   				
   				if (!empty($conf->global->CREATE_CHILDREN_OF)) 
   				{
-                	$TCompositionSubProd = $TAssetOF->getProductComposition($PDOdb,$line->fk_product, $line->qty_needed, $line->fk_nomenclature);
+                	$TCompositionSubProd = $TAssetOF->getProductComposition($PDOdb,$line->fk_product, $line->qty, $line->fk_nomenclature);
 
 					if ((!empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT) && !empty($TCompositionSubProd)) || empty($conf->global->CREATE_CHILDREN_OF_COMPOSANT)) {	
-						$k = $TAssetOF->createOFifneeded($PDOdb,$line->fk_product, $line->qty_needed, $line->getId());
+						$k = $TAssetOF->createOFifneeded($PDOdb,$line->fk_product, $line->qty, $line->getId());
 						$TAssetOF->save($PDOdb);
 
 						if ($k !== null) $TNewIdAssetOF[] = $TAssetOF->TAssetOF[$k]->rowid;
