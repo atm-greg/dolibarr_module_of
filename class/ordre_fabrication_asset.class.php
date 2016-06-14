@@ -292,6 +292,41 @@ class TAssetOF extends TObjetStd{
 		
 	}
 	
+	function getInfoEtiquette(&$pos) {
+		global $db;
+		
+		dol_include_once('/commande/class/commande.class.php');
+		dol_include_once('/product/class/product.class.php');
+		
+		$cmd=new Commande($db);
+		$product=new Product($db);
+		
+		if($this->fk_commande>0) $cmd->fetch($this->fk_commande);
+			
+		foreach ($this->TAssetOFLine as &$assetOfLine)
+		{
+			if ($assetOfLine->type == 'TO_MAKE' && $product->fetch($assetOfLine->fk_product) > 0)
+			{
+				for ($i = 0; $i < $qty; $i++)
+				{
+					$TInfoEtiquette[] = array(
+						'numOf' => $this->numero
+						,'refCmd' => $cmd->ref
+						,'refProd' => $product->ref
+						,'qty_to_print' => $qty
+						,'qty_to_make' => $assetOfLine->qty
+						,'label' => wordwrap(preg_replace('/\s\s+/', ' ', $product->label), 20, "<br />")
+						,'pos' => ceil($pos/8)						
+					);
+					
+					$pos++;
+				}
+			}
+		}
+		
+		return $TInfoEtiquette;
+	}
+	
 	function save(&$PDOdb) {
 		global $user,$langs,$conf, $db;
 

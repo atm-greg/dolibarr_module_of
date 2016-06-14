@@ -460,7 +460,7 @@ function _printTicket(&$PDOdb)
 {
 	global $db,$conf,$langs;
 	
-	$dirName = 'OF_TICKET('.date("Y_m_d").')';
+	$dirName = 'OF_TICKET_'.date("Y_m_d");
 	$dir = DOL_DATA_ROOT.'/of/'.$dirName.'/';
 	$fileName = date('YmdHis').'_ETIQUETTE';
 	
@@ -507,32 +507,8 @@ function _genInfoEtiquette(&$db, &$PDOdb, &$TPrintTicket)
 	{
 		if ($qty <= 0) continue;
 		
-		$load = $assetOf->load($PDOdb, $fk_assetOf);
-		
-		if ($load === true)
-		{
-			$cmd->fetch($assetOf->fk_commande);
-			
-			foreach ($assetOf->TAssetOFLine as &$assetOfLine)
-			{
-				if ($assetOfLine->type == 'TO_MAKE' && $product->fetch($assetOfLine->fk_product) > 0)
-				{
-					for ($i = 0; $i < $qty; $i++)
-					{
-						$TInfoEtiquette[] = array(
-							'numOf' => $assetOf->numero
-							,'refCmd' => $cmd->ref
-							,'refProd' => $product->ref
-							,'qty_to_print' => $qty
-							,'qty_to_make' => $assetOfLine->qty
-							,'label' => wordwrap(preg_replace('/\s\s+/', ' ', $product->label), 20, "<br />")
-							,'pos' => ceil($pos/8)						
-						);
-						
-						$pos++;
-					}
-				}
-			}
+		if($assetOf->load($PDOdb, $fk_assetOf)) {
+			$TInfoEtiquette = array_merge($TInfoEtiquette, $assetOf->getInfoEtiquette($pos));
 		}
 		
 	}
