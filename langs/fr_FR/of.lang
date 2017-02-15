@@ -17,13 +17,11 @@ Asset=Equipement
 ListAsset=Liste des équipements
 ListAssetLent=Liste des équipements prêtés
 AssetDeleted=Equipement supprimé
-AssetType=Type d'Equipement
 AssetListType=Liste des types d'équipements
 AssetTypeMsgNothing=Il n'y a aucun type d'équipement à afficher
 AssetListFields=Champs des équipements
 AssetAddType=Ajouter un type d'équipement
 AssetCreateType=Création type d'équipement
-AssetToComplete=A completer
 AssetLotsList=Liste des Lots
 AssetLoaned=Prêté
 AssetDescDLUO=Date Limite d'Utilisation Optimale
@@ -80,7 +78,6 @@ set_OF_COEF_WS=Coefficient multiplicateur de temps lors de l'ajout d'un poste de
 AssetCreateProjectTaskOnValidation=Créer les tâches projets dès la validation et non pas qu'au lancement en production
 
 # TYPES D'EQUIPEMENT
-AssetType=Types d'équipement
 AssetNewType=Nouveau type d'équipement
 AssetDescCumulate=La notion de cumulable agit sur la sortie de stock des équipements.
 AssetDescPerishable=Si le type d'équipement est périssable il faudra renseigner sur l'équipement en question une date limite
@@ -166,4 +163,3 @@ DateBesoin=Date du besoin
 
 ofSetup=Configuration 
 QtyUsed=Quantité utilisée
-

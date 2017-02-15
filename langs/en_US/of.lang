@@ -1,7 +1,10 @@
+# Dolibarr language file - en_US
+CHARSET=UTF-8
+
 Module104161Name=OF
 Module104161Desc=Production Order Management (CAM)
 CreateAssetLot=Create a batch of equipment
-CreateAsset=Creating equipment
+CreateAsset=Create asset
 AssetSetup=Configuration of the Equipment module
 LotDisabled=The option to use batches in OF is disabled
 ficheOF=Card
@@ -14,16 +17,14 @@ Asset=Asset
 ListAsset=List of asset
 ListAssetLent=List of asset loaned
 AssetDeleted=Asset removed
-AssetType=Type of Asset
 AssetListType=List of asset types
 AssetTypeMsgNothing=There is no type of asset to display
 AssetListFields=Asset Fields
 AssetAddType=Add asset type
 AssetCreateType=Create asset type
-AssetToComplete=To complete
 AssetLotsList=List of Lots
 AssetLoaned=Loaned
-AssetDescDLUO=Optimal Limit of Use
+AssetDescDLUO=Best If Used Before date
 ImpossibleToCreateAsset=Unable to create asset
 AssetDefaultDLUO=Delay in days of optimal use date
 
@@ -77,8 +78,7 @@ set_OF_COEF_WS=Coefficient multiplicateur de temps lors de l'ajout d'un poste de
 AssetCreateProjectTaskOnValidation=Créer les tâches projets dès la validation et non pas qu'au lancement en production
 
 # TYPES D'EQUIPEMENT
-AssetType=Types d'équipement
-AssetNewType=Nouveau type d'équipement
+AssetNewType=New asset type
 AssetDescCumulate=La notion de cumulable agit sur la sortie de stock des équipements.
 AssetDescPerishable=Si le type d'équipement est périssable il faudra renseigner sur l'équipement en question une date limite
 
