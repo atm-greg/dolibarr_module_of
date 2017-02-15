@@ -289,7 +289,7 @@
 					</tr>
 				</table>
 			</div>
-			//TODO confirm et attributs title
+			<!-- TODO confirm et attributs title -->
 			[onshow;block=begin;when [view.mode]=='view']
 				<div class="tabsAction notinparentview buttonsAction">
 					
