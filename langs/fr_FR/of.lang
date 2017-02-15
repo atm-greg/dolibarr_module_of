@@ -2,7 +2,7 @@
 CHARSET=UTF-8
 
 Module104161Name = OF
-Module104161Desc = Gestion des ordres de fabrication (GPAO)
+Module104161Desc = Gestion des Ordres de Fabrication (GPAO)
 CreateAssetLot=Créer un lot d'équipement
 CreateAsset=Créer un équipement
 AssetSetup=Configuration du module Equipement
@@ -10,6 +10,14 @@ LotDisabled=L'option pour utiliser des lots dans OF est désactiver
 ficheOF=Fiche
 ParametersWorkstation=Paramêtres Poste de travail
 ParametersWorkflow=Paramêtres Workflow
+
+# RIGHTS
+ReadMO=Lire les Ordres de fabrication
+CreateMO=Créer des Ordres de fabrication
+MOGenerateDocuments=Générer les documents
+SeeCostOfMO=Voir le coût d'un OF
+SeeTimePlannedOfMO=Voir le temps prévu sur un OF
+AllowDeletingMOWithStateOver=Autoriser la suppression d'un OF à l'état "Terminé"
 
 # EQUIPEMENT
 GPAO=GPAO
@@ -29,10 +37,10 @@ ImpossibleToCreateAsset=Impossible de créer l'équipement
 AssetDefaultDLUO=Decalage en jours de la date limite d'utilisation optimale
 
 # ORDRE DE FABRICATION
-OFAsset=Ordre de fabrication
+OFAsset=Ordre de Fabrication
 CreateOFAsset=Créer un Ordre de Fabrication
-ListOFAsset=Liste des ordres de fabrication
-OFAssetDeleted=Ordre de fabrication supprimé
+ListOFAsset=Liste des Ordres de Fabrication
+OFAssetDeleted=Ordre de Fabrication supprimé
 createOFFile = Générer document papier
 WorkStation=Poste de travail
 workstation=poste de travail
@@ -44,7 +52,7 @@ AssetProductionOrderNEEDOFFER=Attente prix
 AssetProductionOrderONORDER=Attente fourniture
 AssetProductionOrderOPEN=En cours
 AssetProductionOrderCLOSE=Terminé
-AssetNewProductionOrder=Nouvel ordre de Fabrication
+AssetNewProductionOrder=Nouvel Ordre de Fabrication
 OFAttachedClosedAutomatically = Ordre de fabrication %s clôturé automatiquement
 AssetAddNeededQtyZero = Ajouter les composants avec une quantité à 0
 AssetNegativeDestock = Permettre le déstockage des équipements dans l'OF même si la quantité est insufisante
@@ -61,6 +69,47 @@ set_ABRICOT_WKHTMLTOPDF_CMD=Commande pour la génération PDF des étiquettes (W
 OfNbTicketrPerPage=Valeur par défaut d'impression étiquette par page (-1 pour désactiver la fonctionnalité)
 ofError_fk_entrepot_missing=Erreur : une ou plusieurs lignes non pas d'entrepôt affecté sur l'of : %s
 OF_CHECK_IF_WAREHOUSE_ON_OF_LINE=Vérifier qu'un entrepôt est saisie sur chaque ligne de l'OF sur l'action "Valider", si la configuration du changement de status peuple les OFs enfants alors la vérification ce fera aussi sur les enfants 
+MONumber=Numéro
+MOOrderTiming=Ordre
+MOProductToMake=Produit à fabriquer
+MOProductsToMake=Produits à fabriquer
+MOQuantityToMake=Quantité à fabriquer
+MOQuantityMade=Quantité fabriquée
+ParentMO=OF Parent
+MORelatedOrder=Commande
+MOSupplierOrder=Commande Fournisseur
+MOClient=Client
+MOProject=Projet
+MONeedDate=Date du besoin
+MOLaunchDate=Date de lancement
+MOEstimatedFabricationTime=Temps estimé de fabrication
+MOActualFabricationTime=Temps réel de fabrication
+MOHours=heure(s)
+MOEstimatedFabricationCost=Coût estimé de fabrication
+MOActualFabricationCost=Coût réel de fabrication
+MOFinishedProductCost=Coût du produit fini
+MOStatus=Statut
+ValidateMOQuestion=Valider cet Ordre de Fabrication ?
+ValidateMO=Valider l'OF
+LaunchMOQuestion=Lancer cet Ordre de Fabrication ?
+LaunchMO=Lancer l'OF
+FinishMOQuestion=Terminer cet Ordre de Fabrication ?
+FinishMO=Clore l'OF
+MONote=Note
+MOAction=Action
+MOLot=Lot
+MOProduct=Produit
+MOSupplier=Fournisseur
+MOWarehouse=Entrepôt
+MOAddProduct=Ajouter produit
+MOProductsNeededForFabrication=Produits nécessaires à la fabrication
+MONeededQuantity=Quantité nécessaire
+MOPlannedQuantity=Quantité prévue
+MOUsedQuantity=Quantité utilisée
+MOCost=Coût
+MOPrint=Imprimer
+
+
 
 #LOT
 ListAssetLot=Liste des lots d'équipement

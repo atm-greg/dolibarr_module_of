@@ -78,7 +78,7 @@ function _createOFCommande(&$PDOdb, $TProduct, $TQuantites, $fk_commande, $fk_so
 		
 		setEventMessage($langs->trans('OFAsset')." créé(s) avec succès", 'mesgs');
 	}
-			
+
 }
 
 function _liste(&$PDOdb)

@@ -991,7 +991,8 @@ function _fiche(&$PDOdb, &$assetOf, $mode='edit',$fk_product_to_add=0,$fk_nomenc
 			,'workstation'=>$TWorkstation
 		)
 		,array(
-			'assetOf'=>array(
+			'langs'=>$langs
+			,'assetOf'=>array(
 				'id'=> $assetOf->getId()
 				,'numero'=> ($assetOf->getId() > 0) ? '<a href="fiche_of.php?id='.$assetOf->getId().'">'.$assetOf->getNumero($PDOdb).'</a>' : $assetOf->getNumero($PDOdb)
 				,'ordre'=>$form->combo('','ordre',TAssetOf::$TOrdre,$assetOf->ordre)

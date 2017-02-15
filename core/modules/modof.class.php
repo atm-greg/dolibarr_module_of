@@ -198,42 +198,42 @@ class modof extends DolibarrModules
 
 		$r++;
 		$this->rights[$r][0] = $this->numero+$r;
-		$this->rights[$r][1] = 'Lire les Ordres de fabrication';
+		$this->rights[$r][1] = $langs->trans('ReadMO');
 		$this->rights[$r][3] = 1;
 		$this->rights[$r][4] = 'of';
 		$this->rights[$r][5] = 'lire';
 
 		$r++;
 		$this->rights[$r][0] = $this->numero+$r;
-		$this->rights[$r][1] = 'Créer des Ordres de fabrication';
-		$this->rights[$r][3] =0;
+		$this->rights[$r][1] = $langs->trans('CreateMO');
+		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'of';
 		$this->rights[$r][5] = 'write';
 
 				
 		$r++;
 		$this->rights[$r][0] = $this->numero+$r;
-		$this->rights[$r][1] = 'Générer les documents';
+		$this->rights[$r][1] = $langs->trans('MOGenerateDocuments');
 		$this->rights[$r][3] = 1;
 		$this->rights[$r][4] = 'read';
 
 		$r++;
 		$this->rights[$r][0] = $this->numero+$r;
-		$this->rights[$r][1] = 'Voir le coût d\'un OF';
+		$this->rights[$r][1] = $langs->trans('SeeCostOfMO');
 		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'of';
 		$this->rights[$r][5] = 'price';
 		
 		$r++;
 		$this->rights[$r][0] = $this->numero+$r;
-		$this->rights[$r][1] = 'Voir le temps prévus sur un OF';
+		$this->rights[$r][1] = $langs->trans('SeeTimePlannedOfMO');
 		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'of';
 		$this->rights[$r][5] = 'show_ws_time';
 		
 		$r++;
 		$this->rights[$r][0] = $this->numero+$r;
-		$this->rights[$r][1] = 'Autoriser la suppression d\'un OF à l\'état "Terminé"';
+		$this->rights[$r][1] = $langs->trans('AllowDeletingMOWithStateOver');
 		$this->rights[$r][3] = 0;
 		$this->rights[$r][4] = 'of';
 		$this->rights[$r][5] = 'allow_delete_of_finish';

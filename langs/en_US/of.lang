@@ -2,7 +2,7 @@
 CHARSET=UTF-8
 
 Module104161Name=OF
-Module104161Desc=Production Order Management (CAM)
+Module104161Desc=Manufacturing Order management (CAM)
 CreateAssetLot=Create a batch of equipment
 CreateAsset=Create asset
 AssetSetup=Configuration of the Equipment module
@@ -10,6 +10,14 @@ LotDisabled=The option to use batches in OF is disabled
 ficheOF=Card
 ParametersWorkstation=Workstation Settings
 ParametersWorkflow=Workflow Settings
+
+# RIGHTS
+ReadMO=Read Manufacturing Orders
+CreateMO=Create Manufacturing Orders
+MOGenerateDocuments=Generate documents
+SeeCostOfMO=See the cost of a Manufacturing Order
+SeeTimePlannedOfMO=See the planned time for a Manufacturing Order
+AllowDeletingMOWithStateOver=Delete a Manufacturing Order with state "Over"
 
 # EQUIPEMENT
 GPAO=CAM
@@ -31,13 +39,13 @@ AssetDefaultDLUO=Delay in days of optimal use date
 # ORDRE DE FABRICATION
 OFAsset=Manufacturing order
 CreateOFAsset=Create a Manufacturing Order
-ListOFAsset=List of production orders
-OFAssetDeleted=Production order deleted
+ListOFAsset=List of Manufacturing Orders
+OFAssetDeleted=Manufacturing Order deleted
 createOFFile=Generate paper document
 WorkStation=Workstation
 workstation=workplace
 ListOrderProducts=List of products of the order
-AssetProductionOrder=Fabrication order
+AssetProductionOrder=Manufacturing Order
 AssetProductionOrderDraft=Draft copy
 AssetProductionOrderVALID=Valid
 AssetProductionOrderNEEDOFFER=Price Waiting
@@ -45,7 +53,7 @@ AssetProductionOrderONORDER=Waiting for supply
 AssetProductionOrderOPEN=In progress
 AssetProductionOrderCLOSE=Completed
 AssetNewProductionOrder=New Manufacturing Order
-OFAttachedClosedAutomatically=Production order% s automatically closed
+OFAttachedClosedAutomatically=Manufacturing Order %s automatically closed
 AssetAddNeededQtyZero=Add components with an amount to 0
 AssetNegativeDestock=Allow destocking of equipment in OF even if quantity is insufficient
 AssetChildOfStatusFollowParentStatus=When changing the status of the OF parent, populate the latter on the status of children's OF if not superior
@@ -61,6 +69,48 @@ set_ABRICOT_WKHTMLTOPDF_CMD=Order for the PDF generation of labels (WkHTMLtoPDF 
 OfNbTicketrPerPage=Default print label value per page (-1 to disable functionality)
 ofError_fk_entrepot_missing=Error: One or more warehouse lines not affected on:% s
 OF_CHECK_IF_WAREHOUSE_ON_OF_LINE=Check that a warehouse is entered on each line of OF on the action "Validate", if the configuration of the change of status people the OFs children then the check will also do on the children
+MONumber=Number
+MOOrderTiming=Order
+MOProductToMake=Product to make
+MOProductsToMake=Products to make
+MOQuantityToMake=Quantity to make
+MOQuantityMade=Quantity made
+ParentMO=Parent Manufacturing Order
+MORelatedOrder=Order
+MOSupplierOrder=Supplier Order
+MOClient=Client
+MOProject=Project
+MONeedDate=Date of need
+MOLaunchDate=Launch date
+MOEstimatedFabricationTime=Estimated fabrication time
+MOActualFabricationTime=Actual fabrication time
+MOHours=hour(s)
+MOEstimatedFabricationCost=Estimated fabrication cost
+MOActualFabricationCost=Actual fabrication cost
+MOFinishedProductCost=Finished product cost
+MOStatus=Status
+ValidateMOQuestion=Validate this Manufacturing Order ?
+ValidateMO=Validate the MO
+LaunchMOQuestion=Launch this Manufacturing Order ?
+LaunchMO=Launch the MO
+FinishMOQuestion=Close this Manufacturing Order ?
+FinishMO=Close the MO
+MONote=Note
+MOAction=Action
+MOLot=Lot
+MOProduct=Product
+MOSupplier=Supplier
+MOWarehouse=Warehouse
+MOAddProduct=Add product
+MOProductsNeededForFabrication=Products needed for the fabrication
+MONeededQuantity=Needed quantity
+MOPlannedQuantity=Planned quantity
+MOUsedQuantity=Used quantity
+MOCost=Cost
+MOPrint=Print
+
+
+
 
 #LOT
 ListAssetLot=List of Equipment Lots
@@ -108,7 +158,7 @@ UseDefinedWarehouse=Allows you to define default warehouses for storage / destoc
 ParametersWarehouse=Warehouses (if no options are used, the storage / destocking behavior will take the warehouse defined on each equipment)
 CreateAssetChildrenOF=Allow the creation of child FOs for non-stock products needed for manufacturing
 CreateAssetChildrenOFWithComposant=Restrict creation of child OF to products to be manufactured having components and no stock
-UsetAssetProductionAttributs= Use production fields
+UsetAssetProductionAttributs=Use production fields
 CreteAssetOFOnOrderValidation= Automatically create the Manufacturing order when validating an order
 DeleteAssetOFOnOrderCancel= Automatically remove Manufacturing Orders when canceling an order
 UseBatchNumberInOf= Use batch management in OF
