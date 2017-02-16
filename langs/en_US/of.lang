@@ -73,6 +73,7 @@ MONumber=Number
 MOOrderTiming=Order
 MOProductToMake=Product to make
 MOProductsToMake=Products to make
+MOQuantity=Quantity
 MOQuantityToMake=Quantity to make
 MOQuantityMade=Quantity made
 ParentMO=Parent Manufacturing Order
@@ -95,6 +96,7 @@ LaunchMOQuestion=Launch this Manufacturing Order ?
 LaunchMO=Launch the MO
 FinishMOQuestion=Close this Manufacturing Order ?
 FinishMO=Close the MO
+DeleteMOQuestion=Delete this Manufacturing Order ?
 MONote=Note
 MOAction=Action
 MOLot=Lot
@@ -102,14 +104,23 @@ MOProduct=Product
 MOSupplier=Supplier
 MOWarehouse=Warehouse
 MOAddProduct=Add product
+MOAddingAProduct=Adding a product
 MOProductsNeededForFabrication=Products needed for the fabrication
 MONeededQuantity=Needed quantity
 MOPlannedQuantity=Planned quantity
 MOUsedQuantity=Used quantity
 MOCost=Cost
 MOPrint=Print
-
-
+MOIsOver=This Manufacturing Order is over
+MOModificationsSaved=Modifications saved
+MOErrorHappened=An error happened
+MOUntitled=(untitled)
+MONeededProductUpdateImpossible=To update the products needed, your MO must have the draft status and you must use the modification page.
+MOUpdatedQuantitiesSaved=Updated quantities saved
+aMOHasBeenCreate=A MO has been created
+MOsHaveBeenCreated=MOs have been created
+MONoLongerInDraftStatus=This MO is no longer in draft status.
+ChildMOs=Child MOs
 
 
 #LOT

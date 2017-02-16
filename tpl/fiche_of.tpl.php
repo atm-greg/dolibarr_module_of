@@ -124,7 +124,7 @@
 				</table>
 			</div>
 			
-			
+			<!-- TODO traduction workstation -->
 			[onshow;block=begin;when [view.workstation_module_activate]==1]
 				<div class="of-details" style="margin-top: 25px;">
 					<table width="100%" class="border workstation" style="border:2px solid #f5893f;">
@@ -223,6 +223,7 @@
 									<td>[langs.transnoentitiesnoconv(MOPlannedQuantity)]</td>
 									<td class="nodraft">[langs.transnoentitiesnoconv(MOUsedQuantity)]</td>
 									<!-- <td class="draft">Delta</td> -->
+									<!-- TODO traduction workstation -->
 									[onshow;block=begin;when [view.defined_workstation_by_needed]=='1']
 										<td width="20%">Poste</td>
 									[onshow;block=end]
@@ -289,20 +290,20 @@
 					</tr>
 				</table>
 			</div>
-			<!-- TODO confirm et attributs title -->
+
 			[onshow;block=begin;when [view.mode]=='view']
 				<div class="tabsAction notinparentview buttonsAction">
 					
 					[onshow;block=begin;when [view.allow_delete_of_finish]!='1']
 						[onshow;block=begin;when [view.status]=='CLOSE']
-							<a class="butActionRefused" title="L'ordre de fabrication est terminé" href="#">[langs.transnoentitiesnoconv(Delete)]</a>
+							<a class="butActionRefused" title="[langs.transnoentitiesnoconv(MOIsOver)]" href="#">[langs.transnoentitiesnoconv(Delete)]</a>
 						[onshow;block=end]
 						[onshow;block=begin;when [view.status]!='CLOSE']
-							<a onclick="if(!confirm('Supprimer cet Ordre de Fabrication?')) return false;" class="butActionDelete" href="[assetOf.url]?id=[assetOf.id]&action=delete">[langs.transnoentitiesnoconv(Delete)]</a>
+							<a onclick="if(!confirm('[langs.transnoentitiesnoconv(DeleteMOQuestion)]')) return false;" class="butActionDelete" href="[assetOf.url]?id=[assetOf.id]&action=delete">[langs.transnoentitiesnoconv(Delete)]</a>
 						[onshow;block=end]
 					[onshow;block=end]
 					[onshow;block=begin;when [view.allow_delete_of_finish]=='1']
-						<a onclick="if(!confirm('Supprimer cet Ordre de Fabrication?')) return false;" class="butActionDelete" href="[assetOf.url]?id=[assetOf.id]&action=delete">[langs.transnoentitiesnoconv(Delete)]</a>
+						<a onclick="if(!confirm('[langs.transnoentitiesnoconv(DeleteMOQuestion)]')) return false;" class="butActionDelete" href="[assetOf.url]?id=[assetOf.id]&action=delete">[langs.transnoentitiesnoconv(Delete)]</a>
 					[onshow;block=end]
 					&nbsp; &nbsp; <a href="[assetOf.url]?id=[assetOf.id]&action=edit" class="butAction">[langs.transnoentitiesnoconv(Modify)]</a>
 					&nbsp; &nbsp; <a name="createFileOF" class="butAction notinparentview" href="[assetOf.url]?id=[assetOf.id]&action=createDocOF">[langs.transnoentitiesnoconv(MOPrint)]</a>
@@ -324,14 +325,17 @@
 		</form>
 
 	</div><!-- fin de OFMaster -->
-	<div id="dialog" title="Ajout de Produit" style="display:none;width: 100%;">
+	<div id="dialog" title="[langs.transnoentitiesnoconv(MOAddingAProduct)]" style="display:none;width: 100%;">
 		<table>
 			<tr>
-				<td>Produit : </td>
+				<td>[langs.transnoentitiesnoconv(MOProduct)] : </td>
 				<td>
 					[view.select_product;strconv=no]
 				</td>
 			</tr>
+
+			<!-- // TODO traduction nomenclature -->
+
 			[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
 				<tr id="tr_select_nomenclature" style="display:none;">
 					<td style="width:80px;" title="Nomenclature">Nomen. : </td>
@@ -339,11 +343,14 @@
 				</tr>
 			[onshow;block=end]
 			<tr>
-				<td style="width:80px;">Quantité : </td>
+				<td style="width:80px;">[langs.transnoentitiesnoconv(MOQuantity)] : </td>
 				<td><input type='text' size='4' value='1' name='default_qty_to_make' /></td>
 			</tr>
 		</table>
 	</div>
+
+	<!-- TODO traduction workstation -->
+
 	[onshow;block=begin;when [view.workstation_module_activate]==1]
 		<div id="dialog-workstation" title="Ajout d'un poste de travail"  style="display:none;">
 			<table>
@@ -360,7 +367,7 @@
 	
 	<div style="clear:both;"></div>
 		<div id="assetChildContener" [view.hasChildren;noerr;if [val]==0;then 'style="display:none"';else '']>
-			<h2 id="titleOFEnfants">OF Enfants</h2>
+			<h2 id="titleOFEnfants">[langs.transnoentitiesnoconv(ChildMOs)]</h2>
 		</div>
 	<script type="text/javascript">
 		
@@ -379,7 +386,9 @@
 				getChild();
 				refreshDisplay();
 			}
-			
+
+			//TODO traduction nomenclature
+
 			/* Couplage avec nomenclature */
 			[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']
 				$('#fk_product').change(function() {
@@ -401,7 +410,7 @@
 							{
 								for (var i in data)
 								{
-									$(selectTarget).append($("<option qty_reference='"+data[i].qty_reference+"' "+(data[i].is_default ? 'selected="selected"' : '')+" value='"+data[i].rowid+"'>"+ (data[i].title == '' ? '(sans titre)' : data[i].title) +"</option>"));
+									$(selectTarget).append($("<option qty_reference='"+data[i].qty_reference+"' "+(data[i].is_default ? 'selected="selected"' : '')+" value='"+data[i].rowid+"'>"+ (data[i].title == '' ? '[langs.transnoentitiesnoconv(MOUntitled)]' : data[i].title) +"</option>"));
 								}
 								
 								var qty = $(selectTarget).children('option:selected').attr('qty_reference');
@@ -515,13 +524,13 @@
 												$(targetForm).animate({ "border": "5px solid green" }, 'slow');
 												$(targetForm).animate({ "border": "0px" }, 'slow');
 																							
-												$.jnotify('Modifications enregistr&eacute;es', "ok");
+												$.jnotify('[langs.transnoentitiesnoconv(MOModificationsSaved)]', "ok");
 												
 												//Maj de l'affichage du formulaire en question
 												refreshTab($(targetForm).children('input[name=id]').val(), 'edit');									     	
 											},
 											error: function () {
-												$.jnotify('Une erreur c\'est produite', "error");
+												$.jnotify('[langs.transnoentitiesnoconv(MOErrorHappened)]', "error");
 											}
 										});
 									
@@ -563,10 +572,10 @@
 					width: 500,
 					modal:true,
 					buttons: {
-						"Annuler": function() {
+						"[langs.transnoentitiesnoconv(Cancel)]": function() {
 							$( this ).dialog( "close" );
 						},				
-						"Ajouter": function(){
+						"[langs.transnoentitiesnoconv(Add)]": function(){
 							var fk_product = $('#fk_product').val();
 							var params = '';
 							
@@ -590,6 +599,7 @@
 				});
 				
 			});
+
 			[onshow;block=begin;when [view.ASSET_USE_MOD_NOMENCLATURE]=='1']	
 			$('.valider_nomenclature').unbind().click(function() {
 					var id_assetOF = $(this).data('id_of');
@@ -771,7 +781,7 @@
 		
 		function addAllLines(id_assetOf,idLine,btnadd){
 			[onshow;block=begin;when [view.mode]=='view']
-				return alert("Votre OF doit être au statut brouillon et devez être en modification pour mettre à jour les valeurs des produits nécessaires.");
+				return alert("[langs.transnoentitiesnoconv(MONeededProductUpdateImpossible)]");
 			[onshow;block=end]
 			
 			[onshow;block=begin;when [view.mode]!='view']
@@ -787,12 +797,12 @@
 						
 						if (nbOFModified > 0 || nbOFCreate > 0)
 						{
-							if (data[0].length > 0) $.jnotify('Mise à jour des quantités enregistr&eacute;es', "ok");
+							if (data[0].length > 0) $.jnotify('[langs.transnoentitiesnoconv(MOUpdatedQuantitiesSaved)]', "ok");
 							
 							if (nbOFCreate > 0)
 							{
-								if (nbOFCreate == 1) $.jnotify('Un OF a été créé', "ok");
-								else if (nbOFCreate > 1) $.jnotify('Des OF ont été créés', "ok");
+								if (nbOFCreate == 1) $.jnotify('[langs.transnoentitiesnoconv(aMOHasBeenCreate)]', "ok");
+								else if (nbOFCreate > 1) $.jnotify('[langs.transnoentitiesnoconv(MOsHaveBeenCreated)]', "ok");
 								
 								//Si des OF sont créés, je met à jour l'affichage de l'OF courant et j'actualise la totalité des OF enfants
 								refreshTab($('.OFContent').attr('rel'), 'edit');
@@ -813,7 +823,7 @@
 						
 					});
 				} else {
-					alert("Cette OF n'est plus au statut brouillon.");
+					alert("[langs.transnoentitiesnoconv(aMOHasBeenCreate)]");
 				}
 			[onshow;block=end]
 		}

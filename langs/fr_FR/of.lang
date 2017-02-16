@@ -73,6 +73,7 @@ MONumber=Numéro
 MOOrderTiming=Ordre
 MOProductToMake=Produit à fabriquer
 MOProductsToMake=Produits à fabriquer
+MOQuantity=Quantité
 MOQuantityToMake=Quantité à fabriquer
 MOQuantityMade=Quantité fabriquée
 ParentMO=OF Parent
@@ -95,6 +96,7 @@ LaunchMOQuestion=Lancer cet Ordre de Fabrication ?
 LaunchMO=Lancer l'OF
 FinishMOQuestion=Terminer cet Ordre de Fabrication ?
 FinishMO=Clore l'OF
+DeleteMOQuestion=Supprimer cet Ordre de Fabrication ?
 MONote=Note
 MOAction=Action
 MOLot=Lot
@@ -102,13 +104,23 @@ MOProduct=Produit
 MOSupplier=Fournisseur
 MOWarehouse=Entrepôt
 MOAddProduct=Ajouter produit
+MOAddingAProduct=Ajout de produit
 MOProductsNeededForFabrication=Produits nécessaires à la fabrication
 MONeededQuantity=Quantité nécessaire
 MOPlannedQuantity=Quantité prévue
 MOUsedQuantity=Quantité utilisée
 MOCost=Coût
 MOPrint=Imprimer
-
+MOIsOver=L'ordre de fabrication est terminé
+MOModificationsSaved=Modifications enregistrées
+MOErrorHappened=Une erreur s'est produite
+MOUntitled=(sans titre)
+MONeededProductUpdateImpossible=Pour mettre à jour les produits nécessaires, votre OF doit être au statut brouillon et vous devez être en modification.
+MOUpdatedQuantitiesSaved=Mise à jour des quantités enregistrée
+aMOHasBeenCreate=Un OF a été créé
+MOsHaveBeenCreated=Des OF ont été créés
+MONoLongerInDraftStatus=Cet OF n'est plus au statut brouillon.
+ChildMOs=OF enfants
 
 
 #LOT
